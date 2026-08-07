@@ -733,6 +733,23 @@ body {
   .header-info .dot-label { display: none; }
   .header .eth-sndk-tags { display: none; }
 }
+
+/* Efficiency: Sticky, Alerts, Calc, Toast */
+.sticky-bar{position:fixed;top:0;left:0;right:0;z-index:100;background:#1a1a2e;color:#fff;padding:8px 16px;display:none;justify-content:space-around;align-items:center;font-size:13px;font-weight:600;border-bottom:2px solid #ff9100}
+.sticky-bar.visible{display:flex}.sticky-bar .sticky-price{font-size:15px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:2000}.overlay.open{display:block}
+.alert-popup{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:16px;padding:20px;z-index:2001;box-shadow:0 8px 32px rgba(0,0,0,.2);width:340px;max-width:90vw;max-height:80vh;overflow-y:auto}
+.alert-popup.open{display:block}.alert-popup h3{font-size:16px;margin-bottom:12px}
+.alert-popup label{font-size:12px;color:#666;display:block;margin:8px 0 4px}
+.alert-popup input,.alert-popup select{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:16px;margin-bottom:8px;min-height:44px}
+.alert-popup .btn-row{display:flex;gap:8px;margin-top:8px}
+.alert-popup .btn-row button{flex:1;padding:10px;border-radius:8px;border:none;font-size:14px;cursor:pointer;min-height:44px;font-weight:500}
+.btn-save{background:#2979ff;color:#fff}.btn-cancel{background:#f5f5f5;color:#666}
+.flash-alert{animation:flashBg .4s ease 4}@keyframes flashBg{0%,100%{background:var(--bg)}50%{background:#ffcdd2}}
+.card-toggle{background:none;border:none;font-size:12px;cursor:pointer;margin-left:auto;padding:4px 8px;min-width:36px;min-height:36px;border-radius:4px}
+.card-toggle:active{background:#f0f0f0}.mini-card.collapsed>:not(h3){display:none}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 24px;border-radius:20px;font-size:13px;z-index:2000;pointer-events:none;animation:toastIn .3s ease}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 </style>
 </head>
 <body>
@@ -750,7 +767,9 @@ body {
     <span class="live-dot"></span>
     <span class="dot-label">实时</span>
     <button class="refresh-btn" onclick="refreshAll()">刷新</button>
-    <button class="share-btn" onclick="shareData()">📤 分享行情</button>
+    <button class="share-btn" onclick="shareData()">📤 分享</button>
+    <button class="share-btn" onclick="openAlert()" style="background:#ff9100;">🔔 预警</button>
+    <button class="share-btn" onclick="openCalc()" style="background:#7c4dff;">🧮 计算</button>
   </div>
 </div>
 
@@ -1176,11 +1195,11 @@ function updatePriceEl(id, price, changeId, change) {
   if (el) el.textContent = '$' + price.toLocaleString(undefined,{minimumFractionDigits:2});
   if (changeId && change !== undefined) {
     const c = document.getElementById(changeId);
-    if (c) {
-      c.textContent = (change>=0?'+':'') + change.toFixed(2) + '%';
-      c.className = 'change-pct ' + (change>=0?'green':'red');
-    }
+    if (c) { c.textContent = (change>=0?'+':'') + change.toFixed(2) + '%'; c.className = 'change-pct ' + (change>=0?'green':'red'); }
   }
+  // Update sticky bar
+  if (id === 'ethPrice') { const s = document.getElementById('stickyEthPrice'); if (s) s.textContent = '$' + price.toLocaleString(undefined,{minimumFractionDigits:2}); }
+  if (id === 'sndkPrice') { const s = document.getElementById('stickySndkPrice'); if (s) s.textContent = '$' + price.toLocaleString(undefined,{minimumFractionDigits:2}); }
 }
 
 function updateFluctCell(id, pct) {
@@ -1405,7 +1424,143 @@ function clearSearch() {
   document.getElementById('searchClear').style.display = 'none';
   searchNews();
 }
+
+// ===== Price Alerts (localStorage) =====
+let alerts = JSON.parse(localStorage.getItem('wb_alerts') || '[]');
+let alertTriggered = {};
+
+function openAlert() {
+  document.getElementById('alertOverlay').classList.add('open');
+  document.getElementById('alertPopup').classList.add('open');
+  renderAlertList();
+}
+function closeAlertPopup() {
+  document.getElementById('alertOverlay').classList.remove('open');
+  document.getElementById('alertPopup').classList.remove('open');
+}
+function saveAlert() {
+  const s = document.getElementById('alertSymbol').value;
+  const p = parseFloat(document.getElementById('alertPrice').value);
+  const d = document.getElementById('alertDir').value;
+  if (!p || p <= 0) return;
+  alerts.push({ symbol: s, price: p, dir: d, id: Date.now() });
+  localStorage.setItem('wb_alerts', JSON.stringify(alerts));
+  document.getElementById('alertPrice').value = '';
+  renderAlertList();
+}
+function removeAlert(id) {
+  alerts = alerts.filter(a => a.id !== id);
+  localStorage.setItem('wb_alerts', JSON.stringify(alerts));
+  renderAlertList();
+}
+function renderAlertList() {
+  const el = document.getElementById('alertList');
+  if (!el) return;
+  el.innerHTML = alerts.length ? '<div style="margin-top:8px;font-weight:600;">已设预警：</div>' + alerts.map(a =>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #eee;">
+      ${a.symbol} ${a.dir==='above'?'≥':'≤'} $${a.price}
+      <button onclick="removeAlert(${a.id})" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:16px;">✕</button>
+    </div>`
+  ).join('') : '暂无预警，设置一个吧';
+}
+function checkAlerts() {
+  const ethP = parseFloat((document.getElementById('ethPrice')?.textContent || '$0').replace('$','').replace(/,/g,''));
+  const sndkP = parseFloat((document.getElementById('sndkPrice')?.textContent || '$0').replace('$','').replace(/,/g,''));
+  alerts.forEach(a => {
+    const price = a.symbol === 'ETH' ? ethP : sndkP;
+    const triggered = (a.dir === 'above' && price >= a.price) || (a.dir === 'below' && price <= a.price);
+    const prevId = a.id + '_prev';
+    if (triggered && !alertTriggered[prevId]) {
+      alertTriggered[prevId] = true;
+      document.body.classList.add('flash-alert');
+      setTimeout(() => document.body.classList.remove('flash-alert'), 2000);
+      showToast(`🚨 ${a.symbol} 触发预警: $${price.toFixed(2)} ${a.dir==='above'?'突破':'跌破'} $${a.price}`);
+      try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACAf39/f4B/f3+Af4B/gH+Af4B/f3+Af39/gH+Af4B/gH+Af39/gH9/f4B/f3+Af39/gH+Af4B/f3+Af39/gH9/f4B/gH+Af39/gH+Af4B/f3+Af4B/gH+Af4B/f3+Af39/gH+Af39/gH9/f4B/gH+Af4B/f3+Af4B/gH9/f4B/f3+Af39/gH+Af39/gH+Af4B/gH+Af39/gH+Af4B/f3+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/f3+Af4B/gH+Af4B/gH+Af4B/f3+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/f3+Af4B/gH+Af4B/gH+Af4B/f3+Af4B/gH+Af4B/gH+Af4B/f3+Af4B/gH+Af4B/gH+Af4B/f3+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/f3+Af4B/gH+Af4B/f3+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/f3+Af4B/gH+Af4B/gH+Af4B/f3+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+AfA==').play().catch(()=>{}); } catch(e) {}
+    } else if (!triggered) {
+      alertTriggered[prevId] = false;
+    }
+  });
+}
+
+// ===== Sticky scroll bar =====
+window.addEventListener('scroll', () => {
+  const bar = document.getElementById('stickyBar');
+  if (!bar) return;
+  bar.classList.toggle('visible', window.scrollY > 200);
+  document.getElementById('stickyTime').textContent = new Date().toLocaleTimeString('zh-CN');
+});
+
+// ===== Card collapse =====
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.mini-card h3').forEach(h => {
+    const btn = document.createElement('button');
+    btn.className = 'card-toggle';
+    btn.textContent = '▲';
+    btn.onclick = function() {
+      const card = h.parentElement;
+      card.classList.toggle('collapsed');
+      btn.textContent = card.classList.contains('collapsed') ? '▼' : '▲';
+    };
+    h.appendChild(btn);
+  });
+});
+
+// ===== Quick P&L Calculator =====
+function openCalc() {
+  document.getElementById('alertOverlay').classList.add('open');
+  document.getElementById('calcPopup').classList.add('open');
+}
+function closeCalcPopup() {
+  document.getElementById('alertOverlay').classList.remove('open');
+  document.getElementById('calcPopup').classList.remove('open');
+  document.getElementById('alertPopup').classList.remove('open');
+}
+function doCalc() {
+  const s = document.getElementById('calcSymbol').value;
+  const entry = parseFloat(document.getElementById('calcEntry').value);
+  const exit = parseFloat(document.getElementById('calcExit').value);
+  const size = parseFloat(document.getElementById('calcSize').value) || 1;
+  if (!entry || !exit) { document.getElementById('calcResult').textContent = '请填写入场价和出场价'; return; }
+  const pnl = (exit - entry) * size;
+  const pct = ((exit - entry) / entry * 100).toFixed(2);
+  const isProfit = pnl >= 0;
+  document.getElementById('calcResult').innerHTML = `${s}: <span style="color:${isProfit?'#00c853':'#ff1744'};font-size:18px;">${isProfit?'+':''}$${pnl.toFixed(2)}</span> (${isProfit?'+':''}${pct}%)`;
+}
+
+// Integrate alert check into tick cycle
+const origTick = tickAll;
+tickAll = function() { origTick(); checkAlerts(); };
+
+// Overlay close
+document.getElementById('alertOverlay').addEventListener('click', closeCalcPopup);
 </script>
+
+<!-- Sticky price bar -->
+<div class="sticky-bar" id="stickyBar">
+  <div class="sticky-item">📈 ETH <span class="sticky-price" id="stickyEthPrice">$1,931</span></div>
+  <div class="sticky-item">💾 SNDK <span class="sticky-price" id="stickySndkPrice">$1,325</span></div>
+  <div class="sticky-item">🕐 <span id="stickyTime">--</span></div>
+</div>
+
+<!-- Overlays -->
+<div class="overlay" id="alertOverlay"></div>
+<div class="alert-popup" id="alertPopup">
+  <h3>🔔 价格预警</h3>
+  <label>品种</label><select id="alertSymbol"><option value="ETH">ETH/USDT</option><option value="SNDK">SNDK/USDT</option></select>
+  <label>触发价格</label><input type="number" id="alertPrice" placeholder="例: 2000" step="0.01">
+  <label>方向</label><select id="alertDir"><option value="above">涨破此价提醒</option><option value="below">跌破此价提醒</option></select>
+  <div class="btn-row"><button class="btn-save" onclick="saveAlert()">保存</button><button class="btn-cancel" onclick="closeAlertPopup()">取消</button></div>
+  <div id="alertList"></div>
+</div>
+<div class="alert-popup" id="calcPopup">
+  <h3>🧮 盈亏计算</h3>
+  <label>品种</label><select id="calcSymbol"><option value="ETH">ETH</option><option value="SNDK">SNDK</option></select>
+  <label>入场价</label><input type="number" id="calcEntry" placeholder="入场价">
+  <label>出场价</label><input type="number" id="calcExit" placeholder="出场价">
+  <label>数量</label><input type="number" id="calcSize" value="1" placeholder="合约张数">
+  <div class="btn-row"><button class="btn-save" onclick="doCalc()">计算</button><button class="btn-cancel" onclick="closeCalcPopup()">关闭</button></div>
+  <div id="calcResult"></div>
+</div>
 
 <!-- ===== AI Chat ===== -->
 <button class="ai-fab" onclick="toggleAiChat()" title="AI助手">
