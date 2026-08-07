@@ -673,13 +673,13 @@ body {
   <!-- SNDK Panel -->
   <div class="panel panel-sndk" id="sndkPanel">
 
-    <div class="panel-title sndk">💾 SNDK 闪迪 合约 · 盘后</div>
+    <div class="panel-title sndk">💾 SNDK 闪迪 永续合约 · Gate.io 实时</div>
 
     <!-- Price -->
     <div class="price-strip">
       <div class="price-main">
-        <div class="big-price" id="sndkPrice">$1,298.60</div>
-        <div class="change-pct green" id="sndkChange">+3.18%</div>
+        <div class="big-price" id="sndkPrice">$1,300.01</div>
+        <div class="change-pct green" id="sndkChange">+7.21%</div>
       </div>
       <div class="price-stats">
         <div><div class="stat-val">$1,972亿</div><div class="stat-lbl">市值</div></div>
@@ -898,37 +898,52 @@ function filterNews(cat) {
   renderNews(cat);
 }
 
-// ===== PRICE FETCH: Gate.io for ETH (real-time) =====
-// Note: SNDK is NASDAQ stock, price updates during market hours only.
-// Latest SNDK price embedded in HTML, updated daily via automation.
+// ===== PRICE FETCH: Gate.io — ETH现货 + SNDK永续合约 =====
+async function fetchPrices() {
+  await Promise.all([fetchETH(), fetchSNDK()]);
+}
 
 async function fetchETH() {
   try {
     const res = await fetch('https://api.gateio.ws/api/v4/spot/tickers?currency_pair=ETH_USDT');
     const d = await res.json();
-    const ticker = d[0];
-    const price = parseFloat(ticker.last);
-    const change = parseFloat(ticker.change_percentage);
-    const high = parseFloat(ticker.high_24h);
-    const low = parseFloat(ticker.low_24h);
-    updateETHDisplay(price, change, high, low);
-  } catch(e) { console.log('Gate.io ETH fetch failed'); }
+    const t = d[0];
+    updateETHDisplay(parseFloat(t.last), parseFloat(t.change_percentage), parseFloat(t.high_24h), parseFloat(t.low_24h));
+  } catch(e) {}
+}
+
+async function fetchSNDK() {
+  try {
+    const res = await fetch('https://api.gateio.ws/api/v4/futures/usdt/tickers?contract=SNDK_USDT');
+    const d = await res.json();
+    const t = d[0];
+    updateSNDKDisplay(parseFloat(t.last), parseFloat(t.change_percentage));
+  } catch(e) {}
 }
 
 function updateETHDisplay(price, change, high, low) {
   document.getElementById('ethPrice').textContent = '$' + price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-  const chgEl = document.getElementById('ethChange');
-  chgEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
-  chgEl.className = 'change-pct ' + (change >= 0 ? 'green' : 'red');
+  const c = document.getElementById('ethChange');
+  c.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+  c.className = 'change-pct ' + (change >= 0 ? 'green' : 'red');
   document.getElementById('ethHigh').textContent = '$' + high.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
   document.getElementById('ethLow').textContent = '$' + low.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
   updateMobilePrice(price);
 }
 
+function updateSNDKDisplay(price, change) {
+  const p = document.getElementById('sndkPrice');
+  const c = document.getElementById('sndkChange');
+  if (p) p.textContent = '$' + price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  if (c) {
+    c.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+    c.className = 'change-pct ' + (change >= 0 ? 'green' : 'red');
+  }
+}
+
 function refreshAll() {
-  fetchETH();
-  const t = new Date().toLocaleTimeString('zh-CN');
-  document.getElementById('updateTime').textContent = '更新: ' + t;
+  fetchPrices();
+  document.getElementById('updateTime').textContent = '更新: ' + new Date().toLocaleTimeString('zh-CN');
 }
 
 window.onload = function() {
