@@ -1273,13 +1273,44 @@ async function aiSend() {
   appendMsg('bot', '思考中...', true);
   document.getElementById('aiSendBtn').disabled = true;
 
-  // Built-in AI engine — reads live page data, no server needed
-  setTimeout(() => {
+  // Try DeepSeek AI first, fall back to built-in
+  try {
+    const reply = await callDeepSeek(msg);
+    document.querySelector('#aiMessages .loading')?.remove();
+    appendMsg('bot', reply);
+  } catch(e) {
     document.querySelector('#aiMessages .loading')?.remove();
     const reply = aiEngine(msg);
     appendMsg('bot', reply);
-    document.getElementById('aiSendBtn').disabled = false;
-  }, 600);
+  }
+  document.getElementById('aiSendBtn').disabled = false;
+}
+
+async function callDeepSeek(q) {
+  const DS_KEY = 'sk-1d3a08d5afe941afab448f330b943e93';
+  const ethP = document.getElementById('ethPrice')?.textContent || '$1,931';
+  const sndkP = document.getElementById('sndkPrice')?.textContent || '$1,325';
+  const context = `你是子霖的个人AI交易助手。当前市场数据：ETH ${ethP}，SNDK闪迪 ${sndkP}。恐惧贪婪指数25极度恐惧。ETH箱体震荡1,850-1,900。SNDK财报后反弹。用户问题：${q}`;
+
+  try {
+    const res = await fetch('https://proxy.cors.sh/https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + DS_KEY },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system', content: context },
+          { role: 'user', content: q }
+        ],
+        max_tokens: 300, temperature: 0.7
+      })
+    });
+    if (!res.ok) throw new Error('API error');
+    const d = await res.json();
+    return d.choices[0].message.content;
+  } catch(e) {
+    throw e;
+  }
 }
 
 // ===== Built-in AI Engine — reads real-time page data =====
