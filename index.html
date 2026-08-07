@@ -947,13 +947,13 @@ function filterNews(cat) {
   renderNews(cat);
 }
 
-// ===== PRICE ENGINE: Gate.io — 价格2秒 + 波动表30秒 =====
-// ETH spot: array candles [ts,vol,close,high,low,open,amount,done]
-// SNDK futures: object candles {o,h,l,c,v,t}
+// ===== PRICE ENGINE: Gate.io via CORS proxy =====
+const P = 'https://proxy.cors.sh/';
+const G = 'https://api.gateio.ws/api/v4';
 
 async function fetchETHTicker() {
   try {
-    const d = await fetch('https://api.gateio.ws/api/v4/spot/tickers?currency_pair=ETH_USDT').then(r=>r.json());
+    const d = await fetch(P+G+'/spot/tickers?currency_pair=ETH_USDT').then(r=>r.json());
     const t = d[0];
     const price = +t.last, change = +t.change_percentage;
     updatePriceEl('ethPrice', price, 'ethChange', change);
@@ -970,7 +970,7 @@ async function fetchETHTicker() {
 
 async function fetchSNDKTicker() {
   try {
-    const d = await fetch('https://api.gateio.ws/api/v4/futures/usdt/tickers?contract=SNDK_USDT').then(r=>r.json());
+    const d = await fetch(P+G+'/futures/usdt/tickers?contract=SNDK_USDT').then(r=>r.json());
     const t = d[0];
     const price = +t.last, change = +t.change_percentage;
     updatePriceEl('sndkPrice', price, 'sndkChange', change);
@@ -986,8 +986,8 @@ async function fetchCandles() {
   // ETH 1H/4H
   try {
     const [k1h,k4h] = await Promise.all([
-      fetch('https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=ETH_USDT&interval=1h&limit=2').then(r=>r.json()),
-      fetch('https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=ETH_USDT&interval=4h&limit=2').then(r=>r.json())
+      fetch(P+G+'/spot/candlesticks?currency_pair=ETH_USDT&interval=1h&limit=2').then(r=>r.json()),
+      fetch(P+G+'/spot/candlesticks?currency_pair=ETH_USDT&interval=4h&limit=2').then(r=>r.json())
     ]);
     if(k1h.length>=2) updateFluctCell('ethFluct1H', getChange(k1h[k1h.length-2][2], k1h[k1h.length-1][2]));
     if(k4h.length>=2) updateFluctCell('ethFluct4H', getChange(k4h[k4h.length-2][2], k4h[k4h.length-1][2]));
@@ -996,8 +996,8 @@ async function fetchCandles() {
   // SNDK 1H/4H
   try {
     const [k1h,k4h] = await Promise.all([
-      fetch('https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=SNDK_USDT&interval=1h&limit=2').then(r=>r.json()),
-      fetch('https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=SNDK_USDT&interval=4h&limit=2').then(r=>r.json())
+      fetch(P+G+'/futures/usdt/candlesticks?contract=SNDK_USDT&interval=1h&limit=2').then(r=>r.json()),
+      fetch(P+G+'/futures/usdt/candlesticks?contract=SNDK_USDT&interval=4h&limit=2').then(r=>r.json())
     ]);
     if(k1h.length>=2) updateFluctCell('sndkFluct1H', getChange(k1h[k1h.length-2].c, k1h[k1h.length-1].c));
     if(k4h.length>=2) updateFluctCell('sndkFluct4H', getChange(k4h[k4h.length-2].c, k4h[k4h.length-1].c));
