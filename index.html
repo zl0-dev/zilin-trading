@@ -606,8 +606,8 @@ body {
     <!-- Price -->
     <div class="price-strip">
       <div class="price-main">
-        <div class="big-price" id="ethPrice">$1,862.85</div>
-        <div class="change-pct red" id="ethChange">-0.59%</div>
+        <div class="big-price" id="ethPrice">$1,932.23</div>
+        <div class="change-pct green" id="ethChange">+1.58%</div>
       </div>
       <div class="price-stats">
         <div><div class="stat-val" id="ethHigh">$1,896</div><div class="stat-lbl">24H高</div></div>
@@ -673,13 +673,13 @@ body {
   <!-- SNDK Panel -->
   <div class="panel panel-sndk" id="sndkPanel">
 
-    <div class="panel-title sndk">💾 SNDK 闪迪 合约</div>
+    <div class="panel-title sndk">💾 SNDK 闪迪 合约 · 盘后</div>
 
     <!-- Price -->
     <div class="price-strip">
       <div class="price-main">
-        <div class="big-price" id="sndkPrice">$1,258.58</div>
-        <div class="change-pct red" id="sndkChange">-6.81%</div>
+        <div class="big-price" id="sndkPrice">$1,298.60</div>
+        <div class="change-pct green" id="sndkChange">+3.18%</div>
       </div>
       <div class="price-stats">
         <div><div class="stat-val">$1,972亿</div><div class="stat-lbl">市值</div></div>
@@ -898,10 +898,9 @@ function filterNews(cat) {
   renderNews(cat);
 }
 
-// ===== PRICE FETCH: Gate.io for ETH, Nasdaq for SNDK =====
-async function fetchPrices() {
-  await Promise.all([fetchETH(), fetchSNDK()]);
-}
+// ===== PRICE FETCH: Gate.io for ETH (real-time) =====
+// Note: SNDK is NASDAQ stock, price updates during market hours only.
+// Latest SNDK price embedded in HTML, updated daily via automation.
 
 async function fetchETH() {
   try {
@@ -916,20 +915,6 @@ async function fetchETH() {
   } catch(e) { console.log('Gate.io ETH fetch failed'); }
 }
 
-async function fetchSNDK() {
-  try {
-    const res = await fetch('https://api.nasdaq.com/api/quote/SNDK/info?assetclass=stocks', {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    });
-    const d = await res.json();
-    const data = d.data || {};
-    const pd = data.primaryData || {};
-    const price = parseFloat(pd.lastSalePrice.replace('$',''));
-    const pct = parseFloat(pd.percentageChange.replace('%','')) || 0;
-    updateSNDKDisplay(price, pct);
-  } catch(e) { console.log('Nasdaq SNDK fetch failed'); }
-}
-
 function updateETHDisplay(price, change, high, low) {
   document.getElementById('ethPrice').textContent = '$' + price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
   const chgEl = document.getElementById('ethChange');
@@ -940,21 +925,8 @@ function updateETHDisplay(price, change, high, low) {
   updateMobilePrice(price);
 }
 
-function updateSNDKDisplay(price, pct) {
-  const ids = ['sndkPrice', 'sndkChange'];
-  const pEl = document.getElementById('sndkPrice');
-  const cEl = document.getElementById('sndkChange');
-  if (pEl) {
-    pEl.textContent = '$' + price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-  }
-  if (cEl) {
-    cEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
-    cEl.className = 'change-pct ' + (pct >= 0 ? 'green' : 'red');
-  }
-}
-
 function refreshAll() {
-  fetchPrices();
+  fetchETH();
   const t = new Date().toLocaleTimeString('zh-CN');
   document.getElementById('updateTime').textContent = '更新: ' + t;
 }
