@@ -116,6 +116,18 @@ body {
   min-width: 44px; min-height: 44px;
 }
 
+.share-btn {
+  background: #00c853;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 500;
+  min-width: 44px; min-height: 44px;
+}
+
 .panel {
   display: flex;
   flex-direction: column;
@@ -738,6 +750,7 @@ body {
     <span class="live-dot"></span>
     <span class="dot-label">实时</span>
     <button class="refresh-btn" onclick="refreshAll()">刷新</button>
+    <button class="share-btn" onclick="shareData()">📤 分享行情</button>
   </div>
 </div>
 
@@ -949,6 +962,11 @@ body {
 
 <!-- News Panel -->
 <div class="news-panel">
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="newsSearch" placeholder="搜索新闻、事件、关键词..." oninput="searchNews()">
+    <button class="search-clear" onclick="clearSearch()" style="display:none" id="searchClear">✕</button>
+  </div>
   <div class="news-header">
     <span>📡 国际新闻实时推送 · 影响ETH & SNDK</span>
     <div class="news-filters">
@@ -1254,6 +1272,43 @@ function appendMsg(type, text, loading) {
   div.textContent = text;
   document.getElementById('aiMessages').appendChild(div);
   document.getElementById('aiMessages').scrollTop = document.getElementById('aiMessages').scrollHeight;
+}
+
+// ===== Share & Search =====
+function shareData() {
+  const ethP = document.getElementById('ethPrice').textContent;
+  const ethC = document.getElementById('ethChange').textContent;
+  const sndkP = document.getElementById('sndkPrice').textContent;
+  const sndkC = document.getElementById('sndkChange').textContent;
+  const t = new Date().toLocaleString('zh-CN');
+  const text = `📊 子霖交易行情速报\n${t}\n\n📈 ETH: ${ethP} (${ethC})\n💾 SNDK: ${sndkP} (${sndkC})\n\n🔗 https://zl0-dev.github.io/zilin-trading/\n\n#ETH #SNDK #合约交易`;
+
+  if (navigator.share) {
+    navigator.share({ title: '子霖交易行情', text: text }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).then(() => showToast('已复制行情数据到剪贴板 ✅')).catch(() => showToast('复制失败，请手动复制'));
+  }
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
+
+function searchNews() {
+  const q = document.getElementById('newsSearch').value.trim().toLowerCase();
+  document.getElementById('searchClear').style.display = q ? 'block' : 'none';
+  document.querySelectorAll('.news-item').forEach(item => {
+    const text = item.textContent.toLowerCase();
+    item.style.display = (!q || text.includes(q)) ? 'flex' : 'none';
+  });
+}
+function clearSearch() {
+  document.getElementById('newsSearch').value = '';
+  document.getElementById('searchClear').style.display = 'none';
+  searchNews();
 }
 </script>
 
