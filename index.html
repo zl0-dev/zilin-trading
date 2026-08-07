@@ -2,13 +2,13 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>子霖的交易成神之路 | ETH + SNDK 统一工作台</title>
-<link rel="icon" type="image/svg+xml" href="icon.svg">
-<link rel="apple-touch-icon" href="icon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="子霖交易">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>子霖的交易成神之路 | ETH + SNDK</title>
 <style>
 :root {
   --bg: #f0f2f5;
@@ -22,8 +22,6 @@
   --purple: #7c4dff;
   --orange: #ff9100;
   --surface: #f8f9fb;
-  --eth-color: #627eea;
-  --sndk-color: #ff9100;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -32,45 +30,69 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
-  height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
-/* Header */
+/* ========== DESKTOP: Fixed-height app layout ========== */
+@media (min-width: 769px) {
+  body { height: 100vh; overflow: hidden; }
+  .main-content { display: flex; flex: 1; overflow: hidden; }
+  .panel { flex: 1; overflow-y: auto; padding: 12px; gap: 10px; }
+  .panel-eth { border-right: 1px solid var(--border); }
+  .news-panel { height: 240px; flex-shrink: 0; }
+}
+
+/* ========== MOBILE: Full scrollable layout ========== */
+@media (max-width: 768px) {
+  body { overflow-x: hidden; overflow-y: auto; }
+  .main-content { flex-direction: column; }
+  .panel { width: 100%; padding: 8px; gap: 8px; }
+  .panel-eth { border-right: none; border-bottom: 2px solid #627eea; padding-bottom: 16px; }
+  .news-panel { min-height: 300px; }
+  /* Make panels fully visible, no scrolling inside panels */
+  .panel { overflow: visible; }
+}
+
 .header {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
   color: white;
-  padding: 10px 20px;
+  padding: 10px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 2px solid #ff9100;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .header h1 {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
+@media (min-width: 769px) { .header h1 { font-size: 17px; gap: 12px; } }
 
 .header h1 span { color: #ff9100; }
 
 .header-info {
   display: flex;
   align-items: center;
-  gap: 16px;
-  font-size: 12px;
+  gap: 8px;
+  font-size: 11px;
   color: #a0aec0;
+  flex-wrap: wrap;
+}
+@media (min-width: 769px) {
+  .header-info { gap: 16px; font-size: 12px; }
 }
 
 .live-dot {
-  width: 7px;
-  height: 7px;
+  width: 7px; height: 7px;
   background: #00c853;
   border-radius: 50%;
   animation: blink 1.5s infinite;
@@ -85,45 +107,23 @@ body {
   background: #ff9100;
   color: white;
   border: none;
-  padding: 6px 14px;
+  padding: 8px 16px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 14px;
   cursor: pointer;
   font-weight: 500;
+  min-width: 44px; min-height: 44px;
 }
 
-.refresh-btn:hover { background: #e65100; }
-
-/* Main layout: 2 columns */
-.main-content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* Left: ETH */
 .panel {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  padding: 12px;
-  gap: 10px;
-}
-
-.panel-eth {
-  border-right: 1px solid var(--border);
-  background: #fafbff;
-}
-
-.panel-sndk {
-  background: #fffdf7;
 }
 
 .panel-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -140,11 +140,10 @@ body {
   color: #e65100;
 }
 
-/* Price strip */
 .price-strip {
   background: var(--card-bg);
   border-radius: 10px;
-  padding: 12px 16px;
+  padding: 14px 16px;
   border: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
@@ -152,41 +151,44 @@ body {
 }
 
 .price-main .big-price {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
 }
+@media (min-width: 769px) { .price-main .big-price { font-size: 26px; } }
 
 .price-main .change-pct {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
 }
 
 .price-stats {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   text-align: center;
 }
+@media (min-width: 769px) { .price-stats { gap: 16px; } }
 
 .price-stats .stat-val {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
+@media (min-width: 769px) { .price-stats .stat-val { font-size: 13px; } }
 
 .price-stats .stat-lbl {
-  font-size: 10px;
+  font-size: 11px;
   color: #999;
 }
 
-/* Mini cards */
 .mini-card {
   background: var(--card-bg);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 14px;
   border: 1px solid var(--border);
 }
+@media (min-width: 769px) { .mini-card { padding: 14px; } }
 
 .mini-card h3 {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   margin-bottom: 10px;
   padding-bottom: 8px;
@@ -195,33 +197,39 @@ body {
   align-items: center;
   gap: 6px;
 }
+@media (min-width: 769px) { .mini-card h3 { font-size: 13px; } }
 
-/* Signal rows */
 .sig-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
-  font-size: 12px;
+  padding: 8px 0;
+  font-size: 13px;
   border-bottom: 1px solid #f5f5f5;
+  min-height: 36px;
+}
+@media (min-width: 769px) {
+  .sig-row { padding: 6px 0; font-size: 12px; min-height: auto; }
 }
 
 .sig-row:last-child { border-bottom: none; }
 
-.sig-lbl { color: #888; }
-.sig-val { font-weight: 600; }
+.sig-lbl { color: #888; flex-shrink: 0; margin-right: 8px; }
+.sig-val { font-weight: 600; text-align: right; }
 
 .green { color: var(--green); }
 .red { color: var(--red); }
 .blue { color: var(--blue); }
 .orange { color: var(--orange); }
 
-/* Entry/Exit cards */
 .level-card {
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: 10px;
+  padding: 12px 14px;
   margin: 6px 0;
-  font-size: 12px;
+  font-size: 13px;
+}
+@media (min-width: 769px) {
+  .level-card { padding: 10px 12px; font-size: 12px; }
 }
 
 .level-card.long {
@@ -243,21 +251,26 @@ body {
 .level-card.short .lv-title { color: #c62828; }
 
 .level-card .lv-price {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
 }
+@media (min-width: 769px) { .level-card .lv-price { font-size: 18px; } }
 
 .level-card .lv-detail {
-  font-size: 11px;
+  font-size: 12px;
   color: #666;
   margin-top: 2px;
 }
 
 .alert-mini {
-  font-size: 11px;
-  padding: 8px 10px;
-  border-radius: 6px;
+  font-size: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
   margin-top: 8px;
+  line-height: 1.6;
+}
+@media (min-width: 769px) {
+  .alert-mini { font-size: 11px; padding: 8px 10px; }
 }
 
 .alert-mini.warn {
@@ -272,7 +285,6 @@ body {
   border: 1px solid #ef9a9a;
 }
 
-/* Tags */
 .tag-row {
   display: flex;
   gap: 6px;
@@ -280,10 +292,13 @@ body {
 }
 
 .tag {
-  font-size: 10px;
-  padding: 3px 8px;
-  border-radius: 10px;
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 12px;
   font-weight: 500;
+}
+@media (min-width: 769px) {
+  .tag { font-size: 10px; padding: 3px 8px; }
 }
 
 .tag-bull { background: #e8f5e9; color: #2e7d32; }
@@ -291,10 +306,7 @@ body {
 .tag-info { background: #e3f2fd; color: #1565c0; }
 .tag-warn { background: #fff3e0; color: #e65100; }
 
-/* Bottom news panel */
 .news-panel {
-  height: 240px;
-  flex-shrink: 0;
   border-top: 2px solid #1a1a2e;
   background: #fafbfc;
   display: flex;
@@ -302,32 +314,46 @@ body {
 }
 
 .news-header {
-  padding: 8px 20px;
+  padding: 10px 12px;
   background: #1a1a2e;
   color: white;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 8px;
   font-size: 13px;
+}
+@media (min-width: 769px) {
+  .news-header { flex-direction: row; justify-content: space-between; align-items: center; padding: 8px 20px; }
 }
 
 .news-filters {
   display: flex;
-  gap: 6px;
+  gap: 4px;
+  flex-wrap: wrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
+@media (min-width: 769px) { .news-filters { gap: 6px; } }
 
 .news-filter {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  font-size: 12px;
   cursor: pointer;
   border: 1px solid #4a5568;
   background: transparent;
   color: #a0aec0;
   transition: all 0.2s;
+  white-space: nowrap;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+@media (min-width: 769px) {
+  .news-filter { padding: 4px 12px; font-size: 11px; min-height: auto; }
 }
 
-.news-filter:hover, .news-filter.active {
+.news-filter:active, .news-filter:hover, .news-filter.active {
   background: #ff9100;
   color: white;
   border-color: #ff9100;
@@ -336,28 +362,31 @@ body {
 .news-feed {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 16px;
+  padding: 8px 12px;
 }
+@media (min-width: 769px) { .news-feed { padding: 8px 16px; } }
 
 .news-item {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 8px;
+  padding: 10px 12px;
   margin: 4px 0;
-  border-radius: 8px;
+  border-radius: 10px;
   background: white;
   border: 1px solid #e8e8e8;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.15s;
+  font-size: 13px;
+  -webkit-tap-highlight-color: transparent;
+}
+.news-item:active { background: #f5f5f5; }
+@media (min-width: 769px) {
+  .news-item { padding: 8px 12px; font-size: 12px; }
+  .news-item:hover { background: #f5f5f5; }
 }
 
-.news-item:hover { background: #f5f5f5; }
-
 .news-cat {
-  font-size: 10px;
-  padding: 2px 6px;
+  font-size: 11px;
+  padding: 3px 7px;
   border-radius: 4px;
   font-weight: 600;
   white-space: nowrap;
@@ -371,18 +400,21 @@ body {
 .news-cat.both-cat { background: #f3e5f5; color: #7b1fa2; }
 
 .news-time {
-  font-size: 10px;
+  font-size: 11px;
   color: #999;
   white-space: nowrap;
 }
 
-.news-text { flex: 1; line-height: 1.5; }
+.news-text { flex: 1; line-height: 1.6; }
 .news-text .headline { font-weight: 500; }
-.news-text .detail { color: #888; font-size: 11px; }
+.news-text .detail { color: #888; font-size: 12px; margin-top: 2px; }
+@media (min-width: 769px) {
+  .news-text .detail { font-size: 11px; }
+}
 
 .news-impact {
-  font-size: 10px;
-  padding: 2px 6px;
+  font-size: 11px;
+  padding: 3px 7px;
   border-radius: 4px;
   white-space: nowrap;
 }
@@ -391,7 +423,6 @@ body {
 .impact-mid { background: #fff3e0; color: #e65100; }
 .impact-low { background: #e8f5e9; color: #2e7d32; }
 
-/* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
@@ -399,16 +430,58 @@ body {
 .footer-bar {
   background: #1a1a2e;
   color: #666;
-  padding: 4px 20px;
-  font-size: 10px;
+  padding: 8px 16px;
+  font-size: 11px;
   text-align: center;
   flex-shrink: 0;
 }
 
-/* Responsive for smaller screens */
-@media (max-width: 900px) {
-  .main-content { flex-direction: column; }
-  .panel-eth { border-right: none; border-bottom: 1px solid var(--border); }
+/* Mobile tab switcher between ETH/SNDK */
+.mobile-tabs {
+  display: none;
+}
+@media (max-width: 768px) {
+  .mobile-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 8px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .mobile-tab {
+    flex: 1;
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: white;
+    cursor: pointer;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .mobile-tab.active-eth { background: #e8eaf6; color: #283593; border-color: #627eea; }
+  .mobile-tab.active-sndk { background: #fff3e0; color: #e65100; border-color: #ff9100; }
+  .mobile-tab.price-preview {
+    font-size: 11px;
+    font-weight: 400;
+    color: #666;
+    margin-left: 4px;
+  }
+}
+
+/* Hide header clutter on mobile */
+@media (max-width: 768px) {
+  .header h1 { font-size: 14px; }
+  .header-info .dot-label { display: none; }
+  .header .eth-sndk-tags { display: none; }
 }
 </style>
 </head>
@@ -418,24 +491,28 @@ body {
 <div class="header">
   <h1>
     ⚡ <span>子霖的交易成神之路</span>
-    <span style="font-size:11px;color:#627ee8;font-weight:500;">ETH合约</span>
-    <span style="font-size:11px;color:#8899aa;">|</span>
-    <span style="font-size:11px;color:#ff9100;font-weight:500;">SNDK合约</span>
+    <span class="eth-sndk-tags" style="font-size:11px;color:#627ee8;font-weight:500;">ETH</span>
+    <span class="eth-sndk-tags" style="font-size:11px;color:#8899aa;">|</span>
+    <span class="eth-sndk-tags" style="font-size:11px;color:#ff9100;font-weight:500;">SNDK</span>
   </h1>
   <div class="header-info">
-    <span id="updateTime">最后更新: 就绪</span>
-    <span class="live-dot"></span> 实时
-    <select id="refreshInt" onchange="changeRefresh()" style="background:#2d4a7a;color:white;border:1px solid #4a6fa5;border-radius:4px;padding:3px 6px;font-size:11px;">
-      <option value="60">60秒</option>
-      <option value="30">30秒</option>
-      <option value="120">2分钟</option>
-    </select>
-    <button class="refresh-btn" onclick="refreshAll()">🔄 刷新</button>
+    <span id="updateTime" class="dot-label">就绪</span>
+    <span class="live-dot"></span>
+    <span class="dot-label">实时</span>
+    <button class="refresh-btn" onclick="refreshAll()">刷新</button>
   </div>
+</div>
+
+<!-- Mobile tab bar -->
+<div class="mobile-tabs">
+  <div class="mobile-tab active-eth" onclick="switchMobileTab('eth')">📈 ETH<span class="price-preview" id="mobileEthPrice">$1,862.85</span></div>
+  <div class="mobile-tab" onclick="switchMobileTab('sndk')">💾 SNDK<span class="price-preview">$1,258.58</span></div>
 </div>
 
 <!-- Main content: ETH left, SNDK right -->
 <div class="main-content">
+
+
 
   <!-- ETH Panel -->
   <div class="panel panel-eth" id="ethPanel">
@@ -774,11 +851,13 @@ function updateETHDisplay(price, change, high, low) {
   chgEl.className = 'change-pct ' + (change >= 0 ? 'green' : 'red');
   document.getElementById('ethHigh').textContent = '$' + high.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
   document.getElementById('ethLow').textContent = '$' + low.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
+  updateMobilePrice(price);
 }
 
 function refreshAll() {
   fetchETH();
-  document.getElementById('updateTime').textContent = '更新: ' + new Date().toLocaleTimeString('zh-CN');
+  const t = new Date().toLocaleTimeString('zh-CN');
+  document.getElementById('updateTime').textContent = '更新: ' + t;
 }
 
 function changeRefresh() {
@@ -790,9 +869,31 @@ function changeRefresh() {
 window.onload = function() {
   renderNews('all');
   refreshAll();
-  // Initial value already shown in HTML, API just updates it live
   window.timer = setInterval(refreshAll, 60000);
 };
+
+// Mobile tab switching
+function switchMobileTab(tab) {
+  const tabs = document.querySelectorAll('.mobile-tab');
+  tabs.forEach(t => { t.className = 'mobile-tab'; });
+  if (tab === 'eth') {
+    tabs[0].classList.add('active-eth');
+    document.getElementById('ethPanel').style.display = 'flex';
+    document.getElementById('sndkPanel').style.display = 'none';
+  } else {
+    tabs[1].classList.add('active-sndk');
+    document.getElementById('ethPanel').style.display = 'none';
+    document.getElementById('sndkPanel').style.display = 'flex';
+  }
+  // Scroll to top when switching
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Update mobile price in tab
+function updateMobilePrice(price) {
+  const el = document.getElementById('mobileEthPrice');
+  if (el) el.textContent = '$' + price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+}
 </script>
 
 </body>
