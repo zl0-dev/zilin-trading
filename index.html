@@ -678,8 +678,8 @@ body {
     <!-- Price -->
     <div class="price-strip">
       <div class="price-main">
-        <div class="big-price">$1,258.58</div>
-        <div class="change-pct red">-6.81%</div>
+        <div class="big-price" id="sndkPrice">$1,258.58</div>
+        <div class="change-pct red" id="sndkChange">-6.81%</div>
       </div>
       <div class="price-stats">
         <div><div class="stat-val">$1,972亿</div><div class="stat-lbl">市值</div></div>
@@ -773,7 +773,7 @@ body {
 </div>
 
 <div class="footer-bar">
-  子霖的交易成神之路 · ETH合约 + 闪迪SNDK合约 · 数据实时更新 · 仅供参考 不构成投资建议
+  子霖的交易成神之路 · ETH: Gate.io实时 · SNDK: 纳斯达克实时 · 仅供参考 不构成投资建议
 </div>
 
 <script>
@@ -898,34 +898,36 @@ function filterNews(cat) {
   renderNews(cat);
 }
 
-// ===== ETH PRICE FETCH (Dual source: CoinGecko → Binance fallback) =====
-async function fetchETH() {
-  // Try CoinGecko first (better CORS, no region block)
-  try {
-    const res = await fetch('https://api.coingecko.com/api/v3/coins/ethereum?localization=false&tickers=false&community_data=false&developer_data=false');
-    if (res.ok) {
-      const d = await res.json();
-      const price = d.market_data.current_price.usd;
-      const change = d.market_data.price_change_percentage_24h;
-      const high = d.market_data.high_24h.usd;
-      const low = d.market_data.low_24h.usd;
-      updateETHDisplay(price, change, high, low);
-      return;
-    }
-  } catch(e) {}
+// ===== PRICE FETCH: Gate.io for ETH, Nasdaq for SNDK =====
+async function fetchPrices() {
+  await Promise.all([fetchETH(), fetchSNDK()]);
+}
 
-  // Fallback to Binance
+async function fetchETH() {
   try {
-    const res = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT');
+    const res = await fetch('https://api.gateio.ws/api/v4/spot/tickers?currency_pair=ETH_USDT');
     const d = await res.json();
-    const price = parseFloat(d.lastPrice);
-    const change = parseFloat(d.priceChangePercent);
-    const high = parseFloat(d.highPrice);
-    const low = parseFloat(d.lowPrice);
+    const ticker = d[0];
+    const price = parseFloat(ticker.last);
+    const change = parseFloat(ticker.change_percentage);
+    const high = parseFloat(ticker.high_24h);
+    const low = parseFloat(ticker.low_24h);
     updateETHDisplay(price, change, high, low);
-  } catch(e) {
-    console.log('All ETH APIs failed');
-  }
+  } catch(e) { console.log('Gate.io ETH fetch failed'); }
+}
+
+async function fetchSNDK() {
+  try {
+    const res = await fetch('https://api.nasdaq.com/api/quote/SNDK/info?assetclass=stocks', {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    const d = await res.json();
+    const data = d.data || {};
+    const pd = data.primaryData || {};
+    const price = parseFloat(pd.lastSalePrice.replace('$',''));
+    const pct = parseFloat(pd.percentageChange.replace('%','')) || 0;
+    updateSNDKDisplay(price, pct);
+  } catch(e) { console.log('Nasdaq SNDK fetch failed'); }
 }
 
 function updateETHDisplay(price, change, high, low) {
@@ -938,16 +940,23 @@ function updateETHDisplay(price, change, high, low) {
   updateMobilePrice(price);
 }
 
-function refreshAll() {
-  fetchETH();
-  const t = new Date().toLocaleTimeString('zh-CN');
-  document.getElementById('updateTime').textContent = '更新: ' + t;
+function updateSNDKDisplay(price, pct) {
+  const ids = ['sndkPrice', 'sndkChange'];
+  const pEl = document.getElementById('sndkPrice');
+  const cEl = document.getElementById('sndkChange');
+  if (pEl) {
+    pEl.textContent = '$' + price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  if (cEl) {
+    cEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+    cEl.className = 'change-pct ' + (pct >= 0 ? 'green' : 'red');
+  }
 }
 
-function changeRefresh() {
-  const sec = parseInt(document.getElementById('refreshInt').value);
-  clearInterval(window.timer);
-  window.timer = setInterval(refreshAll, sec * 1000);
+function refreshAll() {
+  fetchPrices();
+  const t = new Date().toLocaleTimeString('zh-CN');
+  document.getElementById('updateTime').textContent = '更新: ' + t;
 }
 
 window.onload = function() {
