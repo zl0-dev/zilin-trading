@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>子霖的交易成神之路 | ETH + SNDK 统一工作台</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="子霖交易">
+<style>
+:root {
+  --bg: #f0f2f5;
+  --card-bg: #ffffff;
+  --text: #1a1a2e;
+  --text-secondary: #666;
+  --border: #e2e8f0;
+  --green: #00c853;
+  --red: #ff1744;
+  --blue: #2979ff;
+  --purple: #7c4dff;
+  --orange: #ff9100;
+  --surface: #f8f9fb;
+  --eth-color: #627eea;
+  --sndk-color: #ff9100;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #ff9100;
+  flex-shrink: 0;
+}
+
+.header h1 {
+  font-size: 17px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header h1 span { color: #ff9100; }
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: #a0aec0;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  background: #00c853;
+  border-radius: 50%;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.refresh-btn {
+  background: #ff9100;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.refresh-btn:hover { background: #e65100; }
+
+/* Main layout: 2 columns */
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Left: ETH */
+.panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 12px;
+  gap: 10px;
+}
+
+.panel-eth {
+  border-right: 1px solid var(--border);
+  background: #fafbff;
+}
+
+.panel-sndk {
+  background: #fffdf7;
+}
+
+.panel-title {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-title.eth {
+  background: linear-gradient(135deg, #e8eaf6, #c5cae9);
+  color: #283593;
+}
+
+.panel-title.sndk {
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  color: #e65100;
+}
+
+/* Price strip */
+.price-strip {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price-main .big-price {
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.price-main .change-pct {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.price-stats {
+  display: flex;
+  gap: 16px;
+  text-align: center;
+}
+
+.price-stats .stat-val {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.price-stats .stat-lbl {
+  font-size: 10px;
+  color: #999;
+}
+
+/* Mini cards */
+.mini-card {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+}
+
+.mini-card h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Signal rows */
+.sig-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 12px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.sig-row:last-child { border-bottom: none; }
+
+.sig-lbl { color: #888; }
+.sig-val { font-weight: 600; }
+
+.green { color: var(--green); }
+.red { color: var(--red); }
+.blue { color: var(--blue); }
+.orange { color: var(--orange); }
+
+/* Entry/Exit cards */
+.level-card {
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 6px 0;
+  font-size: 12px;
+}
+
+.level-card.long {
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  border: 1px solid #a5d6a7;
+}
+
+.level-card.short {
+  background: linear-gradient(135deg, #ffebee, #ffcdd2);
+  border: 1px solid #ef9a9a;
+}
+
+.level-card .lv-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.level-card.long .lv-title { color: #2e7d32; }
+.level-card.short .lv-title { color: #c62828; }
+
+.level-card .lv-price {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.level-card .lv-detail {
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
+}
+
+.alert-mini {
+  font-size: 11px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.alert-mini.warn {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffcc80;
+}
+
+.alert-mini.danger {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+/* Tags */
+.tag-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.tag-bull { background: #e8f5e9; color: #2e7d32; }
+.tag-bear { background: #ffebee; color: #c62828; }
+.tag-info { background: #e3f2fd; color: #1565c0; }
+.tag-warn { background: #fff3e0; color: #e65100; }
+
+/* Bottom news panel */
+.news-panel {
+  height: 240px;
+  flex-shrink: 0;
+  border-top: 2px solid #1a1a2e;
+  background: #fafbfc;
+  display: flex;
+  flex-direction: column;
+}
+
+.news-header {
+  padding: 8px 20px;
+  background: #1a1a2e;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.news-filters {
+  display: flex;
+  gap: 6px;
+}
+
+.news-filter {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  cursor: pointer;
+  border: 1px solid #4a5568;
+  background: transparent;
+  color: #a0aec0;
+  transition: all 0.2s;
+}
+
+.news-filter:hover, .news-filter.active {
+  background: #ff9100;
+  color: white;
+  border-color: #ff9100;
+}
+
+.news-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 16px;
+}
+
+.news-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #e8e8e8;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.news-item:hover { background: #f5f5f5; }
+
+.news-cat {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 42px;
+  text-align: center;
+}
+
+.news-cat.eth-cat { background: #e8eaf6; color: #3949ab; }
+.news-cat.sndk-cat { background: #fff3e0; color: #e65100; }
+.news-cat.macro-cat { background: #fce4ec; color: #c62828; }
+.news-cat.both-cat { background: #f3e5f5; color: #7b1fa2; }
+
+.news-time {
+  font-size: 10px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.news-text { flex: 1; line-height: 1.5; }
+.news-text .headline { font-weight: 500; }
+.news-text .detail { color: #888; font-size: 11px; }
+
+.news-impact {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.impact-high { background: #ffebee; color: #c62828; }
+.impact-mid { background: #fff3e0; color: #e65100; }
+.impact-low { background: #e8f5e9; color: #2e7d32; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+
+.footer-bar {
+  background: #1a1a2e;
+  color: #666;
+  padding: 4px 20px;
+  font-size: 10px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Responsive for smaller screens */
+@media (max-width: 900px) {
+  .main-content { flex-direction: column; }
+  .panel-eth { border-right: none; border-bottom: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>
+    ⚡ <span>子霖的交易成神之路</span>
+    <span style="font-size:11px;color:#627ee8;font-weight:500;">ETH合约</span>
+    <span style="font-size:11px;color:#8899aa;">|</span>
+    <span style="font-size:11px;color:#ff9100;font-weight:500;">SNDK合约</span>
+  </h1>
+  <div class="header-info">
+    <span id="updateTime">最后更新: 就绪</span>
+    <span class="live-dot"></span> 实时
+    <select id="refreshInt" onchange="changeRefresh()" style="background:#2d4a7a;color:white;border:1px solid #4a6fa5;border-radius:4px;padding:3px 6px;font-size:11px;">
+      <option value="60">60秒</option>
+      <option value="30">30秒</option>
+      <option value="120">2分钟</option>
+    </select>
+    <button class="refresh-btn" onclick="refreshAll()">🔄 刷新</button>
+  </div>
+</div>
+
+<!-- Main content: ETH left, SNDK right -->
+<div class="main-content">
+
+  <!-- ETH Panel -->
+  <div class="panel panel-eth" id="ethPanel">
+
+    <div class="panel-title eth">📈 ETH/USDT 合约</div>
+
+    <!-- Price -->
+    <div class="price-strip">
+      <div class="price-main">
+        <div class="big-price" id="ethPrice">$1,862.85</div>
+        <div class="change-pct red" id="ethChange">-0.59%</div>
+      </div>
+      <div class="price-stats">
+        <div><div class="stat-val" id="ethHigh">$1,896</div><div class="stat-lbl">24H高</div></div>
+        <div><div class="stat-val" id="ethLow">$1,850</div><div class="stat-lbl">24H低</div></div>
+        <div><div class="stat-val">25</div><div class="stat-lbl" style="color:#ff9100;">恐惧贪婪</div></div>
+      </div>
+    </div>
+
+    <!-- Entry levels -->
+    <div class="mini-card">
+      <h3>🟢 做多进场 / 🔴 做空位置</h3>
+      <div class="level-card long">
+        <div class="lv-title">L1 激进做多</div>
+        <div class="lv-price green">$1,850 - 1,865</div>
+        <div class="lv-detail">止损 $1,830 · 目标 $1,900/1,950</div>
+      </div>
+      <div class="level-card long">
+        <div class="lv-title">L2 稳健做多</div>
+        <div class="lv-price green">$1,780 - 1,800</div>
+        <div class="lv-detail">止损 $1,760 · 目标 $1,880/2,000</div>
+      </div>
+      <div class="level-card short">
+        <div class="lv-title">S1 短线做空</div>
+        <div class="lv-price red">$1,895 - 1,910</div>
+        <div class="lv-detail">止损 $1,930 · 目标 $1,860/1,830</div>
+      </div>
+      <div class="level-card short">
+        <div class="lv-title">S2 趋势做空</div>
+        <div class="lv-price red">$1,950 - 1,980</div>
+        <div class="lv-detail">止损 $2,010 · 目标 $1,870/1,800</div>
+      </div>
+    </div>
+
+    <!-- Smart Money -->
+    <div class="mini-card">
+      <h3>🧠 聪明钱 · 庄家动向</h3>
+      <div class="sig-row"><span class="sig-lbl">资金费率</span><span class="sig-val blue">0.0047% (近零)</span></div>
+      <div class="sig-row"><span class="sig-lbl">ETH总OI</span><span class="sig-val blue">$288亿</span></div>
+      <div class="sig-row"><span class="sig-lbl">ETF周流向</span><span class="sig-val green">+$6,080万 (连续4周)</span></div>
+      <div class="sig-row"><span class="sig-lbl">多空比 (大户)</span><span class="sig-val green">1.63 (偏多)</span></div>
+      <div class="sig-row"><span class="sig-lbl">交易所储备</span><span class="sig-val green">持续下降 (锁仓)</span></div>
+      <div class="sig-row"><span class="sig-lbl">爆仓(24H)</span><span class="sig-val red">$2.56亿全网</span></div>
+      <div class="tag-row" style="margin-top:6px;">
+        <span class="tag tag-bull">🐋 鲸鱼+7,919 ETH</span>
+        <span class="tag tag-bull">BlackRock +$5,030万</span>
+        <span class="tag tag-bear">🐻 Loracle -$2,800万空</span>
+      </div>
+    </div>
+
+    <!-- Structure -->
+    <div class="mini-card">
+      <h3>📐 市场结构</h3>
+      <div class="sig-row"><span class="sig-lbl">趋势</span><span class="sig-val orange">下降通道 · 缩量筑底</span></div>
+      <div class="sig-row"><span class="sig-lbl">MACD 4H</span><span class="sig-val red">零轴下 · 未金叉</span></div>
+      <div class="sig-row"><span class="sig-lbl">RSI 4H</span><span class="sig-val" style="color:#666;">~50 中性</span></div>
+      <div class="sig-row"><span class="sig-lbl">清算区上</span><span class="sig-val red">$1,900 → 空$5.28亿</span></div>
+      <div class="sig-row"><span class="sig-lbl">清算区下</span><span class="sig-val green">$1,777 → 多$5.89亿</span></div>
+      <div class="alert-mini warn">⚠️ 缩量箱体1,850-1,890最易假突破。$1,900是多空分界线。</div>
+    </div>
+
+  </div>
+
+  <!-- SNDK Panel -->
+  <div class="panel panel-sndk" id="sndkPanel">
+
+    <div class="panel-title sndk">💾 SNDK 闪迪 合约</div>
+
+    <!-- Price -->
+    <div class="price-strip">
+      <div class="price-main">
+        <div class="big-price">$1,258.58</div>
+        <div class="change-pct red">-6.81%</div>
+      </div>
+      <div class="price-stats">
+        <div><div class="stat-val">$1,972亿</div><div class="stat-lbl">市值</div></div>
+        <div><div class="stat-val">PE 18.3</div><div class="stat-lbl">估值</div></div>
+        <div><div class="stat-val">-46.5%</div><div class="stat-lbl" style="color:#c62828;">距52周高</div></div>
+      </div>
+    </div>
+
+    <!-- Entry levels -->
+    <div class="mini-card">
+      <h3>🟢 做多 / 🔴 做空 SNDK</h3>
+      <div class="level-card long">
+        <div class="lv-title">L1 短线博反弹</div>
+        <div class="lv-price green">$1,160 - 1,200</div>
+        <div class="lv-detail">止损 $1,120 · 目标 $1,350/1,430</div>
+      </div>
+      <div class="level-card long">
+        <div class="lv-title">L2 中期布局</div>
+        <div class="lv-price green">$990 - 1,050</div>
+        <div class="lv-detail">止损 $950 · 目标 $1,300/1,500</div>
+      </div>
+      <div class="level-card short">
+        <div class="lv-title">S1 反弹做空</div>
+        <div class="lv-price red">$1,350 - 1,430</div>
+        <div class="lv-detail">止损 $1,460 · 目标 $1,200/1,050</div>
+      </div>
+      <div class="level-card short">
+        <div class="lv-title">S2 趋势做空</div>
+        <div class="lv-price red">$1,600 - 1,660</div>
+        <div class="lv-detail">止损 $1,700 · 目标 $1,350/1,200</div>
+      </div>
+    </div>
+
+    <!-- Smart Money -->
+    <div class="mini-card">
+      <h3>📊 合约资金 · 机构动向</h3>
+      <div class="sig-row"><span class="sig-lbl">Hyperliquid OI</span><span class="sig-val blue">$1.64亿 (+25.4%)</span></div>
+      <div class="sig-row"><span class="sig-lbl">多空比</span><span class="sig-val" style="color:#e65100;">多头44% vs 空头56%</span></div>
+      <div class="sig-row"><span class="sig-lbl">存储三雄OI</span><span class="sig-val green">SNDK唯一扩张 +36%</span></div>
+      <div class="sig-row"><span class="sig-lbl">24H成交额</span><span class="sig-val blue">$8.18亿 (HL第一)</span></div>
+      <div class="sig-row"><span class="sig-lbl">FMR (Fidelity)</span><span class="sig-val red">-824万股 (-38%)⚠️</span></div>
+      <div class="sig-row"><span class="sig-lbl">Vanguard</span><span class="sig-val green">+953万股 新建仓🆕</span></div>
+      <div class="tag-row" style="margin-top:6px;">
+        <span class="tag tag-bear">FMR大幅减持</span>
+        <span class="tag tag-bull">Vanguard建仓</span>
+        <span class="tag tag-bull">BlackRock+78万</span>
+        <span class="tag tag-info">$155亿回购</span>
+      </div>
+    </div>
+
+    <!-- Structure -->
+    <div class="mini-card">
+      <h3>📐 技术 · 期权</h3>
+      <div class="sig-row"><span class="sig-lbl">均线系统</span><span class="sig-val red">空头排列 · 跌破所有MA</span></div>
+      <div class="sig-row"><span class="sig-lbl">MACD日线</span><span class="sig-val orange">柱刚转正 · 力度弱</span></div>
+      <div class="sig-row"><span class="sig-lbl">RSI(6)</span><span class="sig-val" style="color:#666;">43.2 偏弱</span></div>
+      <div class="sig-row"><span class="sig-lbl">IV30</span><span class="sig-val red">104.7 (91%分位极贵)</span></div>
+      <div class="sig-row"><span class="sig-lbl">Put/Call 比</span><span class="sig-val blue">0.71 (Call 偏多)</span></div>
+      <div class="sig-row"><span class="sig-lbl">大单异动</span><span class="sig-val red">$216万PUT·$745</span></div>
+      <div class="alert-mini danger">⚠️ Q1指引低于预期 → 财报后跌。但NBM锁单$939亿+$155亿回购支撑。</div>
+    </div>
+
+    <!-- Key events -->
+    <div class="mini-card">
+      <h3>📅 关键催化剂</h3>
+      <div class="sig-row"><span class="sig-lbl">📌 8/13</span><span class="sig-val blue">投资者日 (SD Investor Day)</span></div>
+      <div class="sig-row"><span class="sig-lbl">💰 进行中</span><span class="sig-val green">$155亿回购执行</span></div>
+      <div class="sig-row"><span class="sig-lbl">🤝 NBM协议</span><span class="sig-val green">8份长协 · 锁定4年</span></div>
+      <div class="sig-row"><span class="sig-lbl">🔬 HBF技术</span><span class="sig-val blue">与SK海力士标准化</span></div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- News Panel -->
+<div class="news-panel">
+  <div class="news-header">
+    <span>📡 国际新闻实时推送 · 影响ETH & SNDK</span>
+    <div class="news-filters">
+      <button class="news-filter active" onclick="filterNews('all')">全部</button>
+      <button class="news-filter" onclick="filterNews('eth')">🟣 ETH相关</button>
+      <button class="news-filter" onclick="filterNews('sndk')">🟠 SNDK相关</button>
+      <button class="news-filter" onclick="filterNews('macro')">🔴 宏观</button>
+      <button class="news-filter" onclick="filterNews('both')">🟣🟠 双重影响</button>
+    </div>
+  </div>
+  <div class="news-feed" id="newsFeed">
+    <!-- News items injected by JS -->
+  </div>
+</div>
+
+<div class="footer-bar">
+  子霖的交易成神之路 · ETH合约 + 闪迪SNDK合约 · 数据实时更新 · 仅供参考 不构成投资建议
+</div>
+
+<script>
+// ===== NEWS DATA =====
+const newsData = [
+  {
+    cat: 'both', impact: 'high',
+    time: '8/6 16:30',
+    headline: '美联储9-3维持利率3.50-3.75%，3位鹰派支持加息25bp',
+    detail: '主席Warsh取消前瞻指引。市场定价年内2次加息。30年国债收益率触及5.24%（2007年来最高）。长端利率上行压制所有风险资产。'
+  },
+  {
+    cat: 'sndk', impact: 'high',
+    time: '8/5 盘后',
+    headline: '闪迪FY2026 Q4：营收$89.7亿(+372%)超预期，但Q1指引不及预期',
+    detail: 'EPS $39.25超出12%。Q1营收指引中点$105.5亿 < 预期$108.2亿。盘后跌8%。CEO称AI存储需求"极度旺盛"，NBM锁单$939亿。批准$140亿回购。'
+  },
+  {
+    cat: 'sndk', impact: 'high',
+    time: '8/6',
+    headline: 'SNDK财报电话会：8份NBM长协锁定4年需求，最大客户签约后追加订单',
+    detail: 'CEO Goeckeler："过去只能预判3个月需求，现在手握4年以上"。2027财年过半供应已锁定。数据中心业务占比从12%飙至38%。'
+  },
+  {
+    cat: 'eth', impact: 'high',
+    time: '8/6',
+    headline: 'ETH ETF连续4周净流入，BlackRock客户买入$5,030万',
+    detail: '8/5单日净流入$6,080万。ETH/BTC比率创3个月新高。Bitmine持续增持至579万枚ETH。但鲸鱼严重分歧：多方吸筹 vs Loracle $2,800万空头。'
+  },
+  {
+    cat: 'sndk', impact: 'mid',
+    time: '8/5-6',
+    headline: '闪迪FMS 2026大会：发布BiCS10 QLC NAND + HBF高带宽闪存技术',
+    detail: '与SK海力士、Google联合推进HBF标准化(OCP规范)。HBF瞄准AI推理场景的近计算高带宽存储需求。CEO：NAND是AI基础设施核心。'
+  },
+  {
+    cat: 'both', impact: 'mid',
+    time: '8/5',
+    headline: '中国DUV芯片突破 → 韩国KOSPI暴跌10%，SK海力士跌近10%',
+    detail: '半导体恐慌传导至加密市场。BTC触发$7亿爆仓后反弹。Situational Awareness基金从$450亿跌至$100亿，被迫清仓给Citadel。AI/芯片去杠杆波及所有风险资产。'
+  },
+  {
+    cat: 'eth', impact: 'mid',
+    time: '8/4',
+    headline: 'SEC主席Atkins公开支持CLARITY法案，但参议院8月休会前无望投票',
+    detail: '7名民主党参议员附加道德条款搁置表决。法案推迟至9月。CLARITY将明确CFTC vs SEC监管边界。加密监管确定性被推迟。'
+  },
+  {
+    cat: 'macro', impact: 'high',
+    time: '8/6',
+    headline: '高盛警告：美联储信息减少将导致市场更加波动和"易错"',
+    detail: '首席经济学家Hatzius：缺少前瞻指引 → 市场可能对数据过度反应。摩根大通：不给市场信息会导致"疯狂的事"。WSJ反驳：华尔街应停止依赖美联储。'
+  },
+  {
+    cat: 'eth', impact: 'mid',
+    time: '7/30',
+    headline: 'Coldcard固件漏洞：$7,000万BTC在41分钟内被盗，1,200钱包受影响',
+    detail: '离线攻击重构种子短语。利好机构托管和ETF叙事。Storj申请Chapter 11破产，本周第4家加密公司倒闭。行业洗牌加速。'
+  },
+  {
+    cat: 'macro', impact: 'mid',
+    time: '8/4',
+    headline: '美联储+FDIC联合提案：放宽社区银行内部贷款规则(Regulation O)',
+    detail: '门槛从$50万提至$200万，每5年通胀调整。1980年来首次修订。去监管利好社区银行服务加密企业，但属结构性慢变量。'
+  },
+  {
+    cat: 'both', impact: 'high',
+    time: '8/4',
+    headline: '美伊谈判取得进展 → 暂停对伊朗空袭 → 油价暴跌4.18%',
+    detail: '油价下跌缓解通胀压力，但长端国债收益率仍在涨。市场质疑美联储通胀管控能力。$2,650万BTC ETF单日流出，机构去风险。'
+  },
+  {
+    cat: 'sndk', impact: 'mid',
+    time: '8/3',
+    headline: 'SNDK Hyperliquid OI增36.4%，存储三雄中唯一扩张（MU -18.5%, SKHX -15.4%）',
+    detail: '闪迪获资金回流，OI从$8,812万升至$1.20亿。新增多头$251.5万。存储板块资金从MU/SKHX向SNDK迁移。财报后OI再增25.4%至$1.64亿。'
+  },
+  {
+    cat: 'eth', impact: 'mid',
+    time: '8/6',
+    headline: '以太坊鲸鱼严重分歧：一方吸筹74,265 ETH（$1.32亿），一方$2,800万做空',
+    detail: '神秘鲸鱼6/30起持续买入均价$1,771。Hyperliquid做空巨鲸3x杠杆开$1,700。ICO远古鲸卖出2万ETH。多空分歧意味着$1,900或$1,830突破将引发单向暴动。'
+  },
+  {
+    cat: 'both', impact: 'low',
+    time: '8/1',
+    headline: '圣路易斯联储：AI作为生产力驱动因素在财报电话会中被高频提及',
+    detail: 'AI提高生产力 → 可能降低通胀 → 为降息创造空间。正面影响AI相关半导体(SNDK)和风险资产(ETH)。但属于长期慢变量。'
+  }
+];
+
+function renderNews(filter = 'all') {
+  const feed = document.getElementById('newsFeed');
+  const filtered = filter === 'all' ? newsData : newsData.filter(n => n.cat === filter);
+
+  feed.innerHTML = filtered.map(n => `
+    <div class="news-item" data-cat="${n.cat}">
+      <span class="news-cat ${n.cat}-cat">${catLabel(n.cat)}</span>
+      <span class="news-time">${n.time}</span>
+      <div class="news-text">
+        <div class="headline">${n.headline}</div>
+        <div class="detail">${n.detail}</div>
+      </div>
+      <span class="news-impact impact-${n.impact}">${impactLabel(n.impact)}</span>
+    </div>
+  `).join('');
+}
+
+function catLabel(cat) {
+  const map = { 'eth': 'ETH', 'sndk': 'SNDK', 'macro': '宏观', 'both': '双重' };
+  return map[cat] || cat;
+}
+
+function impactLabel(i) {
+  const map = { 'high': '⚡高', 'mid': '●中', 'low': '○低' };
+  return map[i] || '';
+}
+
+function filterNews(cat) {
+  document.querySelectorAll('.news-filter').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderNews(cat);
+}
+
+// ===== ETH PRICE FETCH (Dual source: CoinGecko → Binance fallback) =====
+async function fetchETH() {
+  // Try CoinGecko first (better CORS, no region block)
+  try {
+    const res = await fetch('https://api.coingecko.com/api/v3/coins/ethereum?localization=false&tickers=false&community_data=false&developer_data=false');
+    if (res.ok) {
+      const d = await res.json();
+      const price = d.market_data.current_price.usd;
+      const change = d.market_data.price_change_percentage_24h;
+      const high = d.market_data.high_24h.usd;
+      const low = d.market_data.low_24h.usd;
+      updateETHDisplay(price, change, high, low);
+      return;
+    }
+  } catch(e) {}
+
+  // Fallback to Binance
+  try {
+    const res = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT');
+    const d = await res.json();
+    const price = parseFloat(d.lastPrice);
+    const change = parseFloat(d.priceChangePercent);
+    const high = parseFloat(d.highPrice);
+    const low = parseFloat(d.lowPrice);
+    updateETHDisplay(price, change, high, low);
+  } catch(e) {
+    console.log('All ETH APIs failed');
+  }
+}
+
+function updateETHDisplay(price, change, high, low) {
+  document.getElementById('ethPrice').textContent = '$' + price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  const chgEl = document.getElementById('ethChange');
+  chgEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+  chgEl.className = 'change-pct ' + (change >= 0 ? 'green' : 'red');
+  document.getElementById('ethHigh').textContent = '$' + high.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
+  document.getElementById('ethLow').textContent = '$' + low.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+
+function refreshAll() {
+  fetchETH();
+  document.getElementById('updateTime').textContent = '更新: ' + new Date().toLocaleTimeString('zh-CN');
+}
+
+function changeRefresh() {
+  const sec = parseInt(document.getElementById('refreshInt').value);
+  clearInterval(window.timer);
+  window.timer = setInterval(refreshAll, sec * 1000);
+}
+
+window.onload = function() {
+  renderNews('all');
+  refreshAll();
+  // Initial value already shown in HTML, API just updates it live
+  window.timer = setInterval(refreshAll, 60000);
+};
+</script>
+
+</body>
+</html>
