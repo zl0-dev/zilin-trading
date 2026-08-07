@@ -285,6 +285,27 @@ body {
   border: 1px solid #ef9a9a;
 }
 
+/* Price fluctuation table */
+.fluct-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.fluct-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+@media (min-width: 769px) {
+  .fluct-table td { padding: 5px 10px; font-size: 12px; }
+}
+.fluct-table td:first-child { color: #888; white-space: nowrap; width: 80px; }
+.fluct-table td:last-child { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.fluct-table tr:last-child td { border-bottom: none; }
+.fluct-up { color: var(--green); }
+.fluct-down { color: var(--red); }
+.fluct-row-highlight { background: #fafafa; }
+
 .tag-row {
   display: flex;
   gap: 6px;
@@ -616,6 +637,20 @@ body {
       </div>
     </div>
 
+    <!-- Price Fluctuation Table -->
+    <div class="mini-card">
+      <h3>📊 价格波动表 (Gate.io实时)</h3>
+      <table class="fluct-table">
+        <tr><td>实时价格</td><td id="ethFluctPrice" class="fluct-up">$1,932.23</td></tr>
+        <tr><td>1小时涨跌</td><td id="ethFluct1H">--</td></tr>
+        <tr class="fluct-row-highlight"><td>4小时涨跌</td><td id="ethFluct4H">--</td></tr>
+        <tr><td>24小时涨跌</td><td id="ethFluct24H" class="fluct-up">+1.58%</td></tr>
+        <tr><td>24H 最高</td><td id="ethFluctHigh">$1,937.50</td></tr>
+        <tr><td>24H 最低</td><td id="ethFluctLow">$1,892.62</td></tr>
+        <tr class="fluct-row-highlight"><td>24H 成交量</td><td id="ethFluctVol">--</td></tr>
+      </table>
+    </div>
+
     <!-- Entry levels -->
     <div class="mini-card">
       <h3>🟢 做多进场 / 🔴 做空位置</h3>
@@ -686,6 +721,20 @@ body {
         <div><div class="stat-val">PE 18.3</div><div class="stat-lbl">估值</div></div>
         <div><div class="stat-val">-46.5%</div><div class="stat-lbl" style="color:#c62828;">距52周高</div></div>
       </div>
+    </div>
+
+    <!-- Price Fluctuation Table -->
+    <div class="mini-card">
+      <h3>📊 价格波动表 (Gate.io实时)</h3>
+      <table class="fluct-table">
+        <tr><td>实时价格</td><td id="sndkFluctPrice" class="fluct-up">$1,300.01</td></tr>
+        <tr><td>1小时涨跌</td><td id="sndkFluct1H">--</td></tr>
+        <tr class="fluct-row-highlight"><td>4小时涨跌</td><td id="sndkFluct4H">--</td></tr>
+        <tr><td>24小时涨跌</td><td id="sndkFluct24H" class="fluct-up">+7.21%</td></tr>
+        <tr><td>24H 最高</td><td id="sndkFluctHigh">$1,322.94</td></tr>
+        <tr><td>24H 最低</td><td id="sndkFluctLow">$1,168.30</td></tr>
+        <tr class="fluct-row-highlight"><td>24H 成交量</td><td id="sndkFluctVol">--</td></tr>
+      </table>
     </div>
 
     <!-- Entry levels -->
@@ -898,47 +947,91 @@ function filterNews(cat) {
   renderNews(cat);
 }
 
-// ===== PRICE FETCH: Gate.io — ETH现货 + SNDK永续合约 =====
+// ===== PRICE FETCH: Gate.io — ETH现货 + SNDK永续合约 + 波动表 =====
 async function fetchPrices() {
-  await Promise.all([fetchETH(), fetchSNDK()]);
+  await Promise.all([fetchETHFull(), fetchSNDKFull()]);
 }
 
-async function fetchETH() {
+async function fetchETHFull() {
   try {
-    const res = await fetch('https://api.gateio.ws/api/v4/spot/tickers?currency_pair=ETH_USDT');
-    const d = await res.json();
-    const t = d[0];
-    updateETHDisplay(parseFloat(t.last), parseFloat(t.change_percentage), parseFloat(t.high_24h), parseFloat(t.low_24h));
+    const [tRes, k1h, k4h] = await Promise.all([
+      fetch('https://api.gateio.ws/api/v4/spot/tickers?currency_pair=ETH_USDT').then(r=>r.json()),
+      fetch('https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=ETH_USDT&interval=1h&limit=2').then(r=>r.json()),
+      fetch('https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=ETH_USDT&interval=4h&limit=2').then(r=>r.json())
+    ]);
+    const t = tRes[0];
+    const price = parseFloat(t.last), change = parseFloat(t.change_percentage);
+    const high = parseFloat(t.high_24h), low = parseFloat(t.low_24h);
+    const vol = Number(t.quote_volume || t.base_volume || 0);
+
+    // Main price display
+    updatePriceEl('ethPrice', price, 'ethChange', change);
+    document.getElementById('ethHigh').textContent = '$' + high.toFixed(0);
+    document.getElementById('ethLow').textContent = '$' + low.toFixed(0);
+    updateMobilePrice(price);
+
+    // Fluctuation table
+    const c1h = k1h.length>=2 ? (price/parseFloat(k1h[k1h.length-2][2])-1)*100 : null;
+    const c4h = k4h.length>=2 ? (price/parseFloat(k4h[k4h.length-2][2])-1)*100 : null;
+    document.getElementById('ethFluctPrice').textContent = '$' + price.toLocaleString(undefined,{minimumFractionDigits:2});
+    updateFluctCell('ethFluct1H', c1h);
+    updateFluctCell('ethFluct4H', c4h);
+    updateFluctCell('ethFluct24H', change);
+    document.getElementById('ethFluctHigh').textContent = '$' + high.toFixed(2);
+    document.getElementById('ethFluctLow').textContent = '$' + low.toFixed(2);
+    document.getElementById('ethFluctVol').textContent = formatVolume(vol);
   } catch(e) {}
 }
 
-async function fetchSNDK() {
+async function fetchSNDKFull() {
   try {
-    const res = await fetch('https://api.gateio.ws/api/v4/futures/usdt/tickers?contract=SNDK_USDT');
-    const d = await res.json();
-    const t = d[0];
-    updateSNDKDisplay(parseFloat(t.last), parseFloat(t.change_percentage));
+    const [tRes, k1h, k4h] = await Promise.all([
+      fetch('https://api.gateio.ws/api/v4/futures/usdt/tickers?contract=SNDK_USDT').then(r=>r.json()),
+      fetch('https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=SNDK_USDT&interval=1h&limit=2').then(r=>r.json()),
+      fetch('https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=SNDK_USDT&interval=4h&limit=2').then(r=>r.json())
+    ]);
+    const t = tRes[0];
+    const price = parseFloat(t.last), change = parseFloat(t.change_percentage);
+    const high = parseFloat(t.high_24h), low = parseFloat(t.low_24h);
+    const vol = Number(t.volume_24h || 0);
+
+    // Main price display
+    updatePriceEl('sndkPrice', price, 'sndkChange', change);
+
+    // Fluctuation table
+    const c1h = k1h.length>=2 ? (price/parseFloat(k1h[k1h.length-2].c)-1)*100 : null;
+    const c4h = k4h.length>=2 ? (price/parseFloat(k4h[k4h.length-2].c)-1)*100 : null;
+    document.getElementById('sndkFluctPrice').textContent = '$' + price.toLocaleString(undefined,{minimumFractionDigits:2});
+    updateFluctCell('sndkFluct1H', c1h);
+    updateFluctCell('sndkFluct4H', c4h);
+    updateFluctCell('sndkFluct24H', change);
+    document.getElementById('sndkFluctHigh').textContent = '$' + high.toFixed(2);
+    document.getElementById('sndkFluctLow').textContent = '$' + low.toFixed(2);
+    document.getElementById('sndkFluctVol').textContent = formatVolume(vol);
   } catch(e) {}
 }
 
-function updateETHDisplay(price, change, high, low) {
-  document.getElementById('ethPrice').textContent = '$' + price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-  const c = document.getElementById('ethChange');
-  c.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
-  c.className = 'change-pct ' + (change >= 0 ? 'green' : 'red');
-  document.getElementById('ethHigh').textContent = '$' + high.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
-  document.getElementById('ethLow').textContent = '$' + low.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
-  updateMobilePrice(price);
+function updatePriceEl(priceId, price, changeId, change) {
+  document.getElementById(priceId).textContent = '$' + price.toLocaleString(undefined,{minimumFractionDigits:2});
+  const c = document.getElementById(changeId);
+  c.textContent = (change>=0?'+':'') + change.toFixed(2) + '%';
+  c.className = 'change-pct ' + (change>=0?'green':'red');
 }
 
-function updateSNDKDisplay(price, change) {
-  const p = document.getElementById('sndkPrice');
-  const c = document.getElementById('sndkChange');
-  if (p) p.textContent = '$' + price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-  if (c) {
-    c.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
-    c.className = 'change-pct ' + (change >= 0 ? 'green' : 'red');
+function updateFluctCell(id, pct) {
+  const el = document.getElementById(id);
+  if (el && pct !== null) {
+    const v = parseFloat(pct.toFixed(2));
+    el.textContent = (v>=0?'+':'') + v + '%';
+    el.className = v>=0 ? 'fluct-up' : 'fluct-down';
   }
+}
+
+function formatVolume(v) {
+  if (v >= 1e9) return '$' + (v/1e9).toFixed(2) + 'B';
+  if (v >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
+  if (v >= 1e3) return '$' + (v/1e3).toFixed(1) + 'K';
+  return '$' + v.toFixed(0);
 }
 
 function refreshAll() {
