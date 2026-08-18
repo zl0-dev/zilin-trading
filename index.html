@@ -275,6 +275,68 @@ body {
   margin-top: 2px;
 }
 
+/* Live trend and dynamic entry levels */
+.trend-card {
+  background: linear-gradient(180deg, #ffffff, #fbfcff);
+}
+.trend-hero {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.trend-badge {
+  flex-shrink: 0;
+  min-width: 62px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #eceff1;
+  color: #607d8b;
+}
+.trend-badge.bullish { background: #e8f5e9; color: #2e7d32; }
+.trend-badge.bearish { background: #ffebee; color: #c62828; }
+.trend-badge.neutral { background: #fff3e0; color: #e65100; }
+.trend-desc { font-size: 13px; font-weight: 700; line-height: 1.35; }
+.trend-sub { font-size: 11px; color: #888; margin-top: 2px; line-height: 1.5; }
+.trend-updated {
+  margin-left: auto;
+  font-size: 11px;
+  color: #999;
+  font-weight: 400;
+}
+.key-levels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 10px 0;
+}
+.key-level {
+  border-radius: 8px;
+  padding: 7px 6px;
+  text-align: center;
+  border: 1px solid var(--border);
+  background: #fafafa;
+}
+.key-level span { display: block; font-size: 10px; color: #888; margin-bottom: 2px; }
+.key-level b { font-size: 12px; font-variant-numeric: tabular-nums; }
+.key-level.long { border-color: #c8e6c9; background: #f1f8e9; }
+.key-level.long b { color: #2e7d32; }
+.key-level.short { border-color: #ffcdd2; background: #fff5f5; }
+.key-level.short b { color: #c62828; }
+.trend-note {
+  font-size: 11px;
+  line-height: 1.55;
+  color: #555;
+  padding: 7px 9px;
+  border-radius: 7px;
+  background: #f6f8fa;
+}
+.level-card.active-long { outline: 2px solid #66bb6a; }
+.level-card.active-short { outline: 2px solid #ef5350; }
+
 .alert-mini {
   font-size: 12px;
   padding: 10px 12px;
@@ -357,7 +419,7 @@ body {
   font-size: 13px;
 }
 @media (min-width: 769px) {
-  .news-header { flex-direction: row; justify-content: space-between; align-items: center; padding: 8px 20px; }
+  .news-header { flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 20px; }
 }
 
 .news-filters {
@@ -391,6 +453,14 @@ body {
   background: #ff9100;
   color: white;
   border-color: #ff9100;
+}
+
+.news-header .refresh-btn {
+  min-width: 88px;
+  min-height: 36px;
+  padding: 6px 12px;
+  font-size: 12px;
+  background: #627eea;
 }
 
 .news-feed {
@@ -439,8 +509,20 @@ body {
   white-space: nowrap;
 }
 
+.news-source {
+  font-size: 10px;
+  color: #627eea;
+  background: #eef2ff;
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  margin-left: 4px;
+}
+
 .news-text { flex: 1; line-height: 1.6; }
 .news-text .headline { font-weight: 500; }
+.news-text .headline a { color: inherit; text-decoration: none; }
+.news-text .headline a:hover { color: #627eea; }
 .news-text .detail { color: #888; font-size: 12px; margin-top: 2px; }
 @media (min-width: 769px) {
   .news-text .detail { font-size: 11px; }
@@ -776,7 +858,7 @@ body {
 <!-- Mobile tab bar -->
 <div class="mobile-tabs">
   <div class="mobile-tab active-eth" onclick="switchMobileTab('eth')">📈 ETH<span class="price-preview" id="mobileEthPrice">$1,862.85</span></div>
-  <div class="mobile-tab" onclick="switchMobileTab('sndk')">💾 SNDK<span class="price-preview">$1,258.58</span></div>
+  <div class="mobile-tab" onclick="switchMobileTab('sndk')">💾 SNDK<span class="price-preview" id="mobileSndkPrice">$1,258.58</span></div>
 </div>
 
 <!-- Hero banner with photo -->
@@ -826,40 +908,61 @@ body {
       </table>
     </div>
 
+    <!-- Live trend & key levels -->
+    <div class="mini-card trend-card">
+      <h3>⚡ 实时趋势与点位 <span class="trend-updated" id="ethTrendUpdated">--</span></h3>
+      <div class="trend-hero">
+        <span class="trend-badge neutral" id="ethTrendBadge">--</span>
+        <div>
+          <div class="trend-desc" id="ethTrendDesc">正在读取行情...</div>
+          <div class="trend-sub" id="ethTrendSub">EMA20 -- · EMA50 -- · RSI -- · ATR --</div>
+        </div>
+      </div>
+      <div class="key-levels">
+        <div class="key-level short"><span>阻力2</span><b id="ethR2">--</b></div>
+        <div class="key-level short"><span>阻力1</span><b id="ethR1">--</b></div>
+        <div class="key-level long"><span>支撑1</span><b id="ethS1">--</b></div>
+        <div class="key-level long"><span>支撑2</span><b id="ethS2">--</b></div>
+      </div>
+      <div class="trend-note" id="ethTrendNote">等待 Gate.io 4H 数据更新...</div>
+    </div>
+
     <!-- Entry levels -->
     <div class="mini-card">
       <h3>🟢 做多进场 / 🔴 做空位置</h3>
-      <div class="level-card long">
-        <div class="lv-title">L1 激进做多</div>
-        <div class="lv-price green">$1,850 - 1,865</div>
-        <div class="lv-detail">止损 $1,830 · 目标 $1,900/1,950</div>
+      <div class="level-card long" id="ethL1Card">
+        <div class="lv-title" id="ethL1Title">L1 激进做多</div>
+        <div class="lv-price green" id="ethL1Price">$1,850 - 1,865</div>
+        <div class="lv-detail" id="ethL1Detail">止损 $1,830 · 目标 $1,900/1,950</div>
       </div>
-      <div class="level-card long">
-        <div class="lv-title">L2 稳健做多</div>
-        <div class="lv-price green">$1,780 - 1,800</div>
-        <div class="lv-detail">止损 $1,760 · 目标 $1,880/2,000</div>
+      <div class="level-card long" id="ethL2Card">
+        <div class="lv-title" id="ethL2Title">L2 稳健做多</div>
+        <div class="lv-price green" id="ethL2Price">$1,780 - 1,800</div>
+        <div class="lv-detail" id="ethL2Detail">止损 $1,760 · 目标 $1,880/2,000</div>
       </div>
-      <div class="level-card short">
-        <div class="lv-title">S1 短线做空</div>
-        <div class="lv-price red">$1,895 - 1,910</div>
-        <div class="lv-detail">止损 $1,930 · 目标 $1,860/1,830</div>
+      <div class="level-card short" id="ethS1Card">
+        <div class="lv-title" id="ethS1Title">S1 短线做空</div>
+        <div class="lv-price red" id="ethS1Price">$1,895 - 1,910</div>
+        <div class="lv-detail" id="ethS1Detail">止损 $1,930 · 目标 $1,860/1,830</div>
       </div>
-      <div class="level-card short">
-        <div class="lv-title">S2 趋势做空</div>
-        <div class="lv-price red">$1,950 - 1,980</div>
-        <div class="lv-detail">止损 $2,010 · 目标 $1,870/1,800</div>
+      <div class="level-card short" id="ethS2Card">
+        <div class="lv-title" id="ethS2Title">S2 趋势做空</div>
+        <div class="lv-price red" id="ethS2Price">$1,950 - 1,980</div>
+        <div class="lv-detail" id="ethS2Detail">止损 $2,010 · 目标 $1,870/1,800</div>
       </div>
     </div>
 
     <!-- Smart Money -->
     <div class="mini-card">
-      <h3>🧠 聪明钱 · 庄家动向</h3>
-      <div class="sig-row"><span class="sig-lbl">资金费率</span><span class="sig-val blue">0.0047% (近零)</span></div>
-      <div class="sig-row"><span class="sig-lbl">ETH总OI</span><span class="sig-val blue">$288亿</span></div>
-      <div class="sig-row"><span class="sig-lbl">ETF周流向</span><span class="sig-val green">+$6,080万 (连续4周)</span></div>
-      <div class="sig-row"><span class="sig-lbl">多空比 (大户)</span><span class="sig-val green">1.63 (偏多)</span></div>
-      <div class="sig-row"><span class="sig-lbl">交易所储备</span><span class="sig-val green">持续下降 (锁仓)</span></div>
-      <div class="sig-row"><span class="sig-lbl">爆仓(24H)</span><span class="sig-val red">$2.56亿全网</span></div>
+      <h3>🧠 聪明钱 · 庄家动向 <span class="trend-updated" id="ethSmartTime">--</span></h3>
+      <div class="sig-row"><span class="sig-lbl">资金费率 (Gate)</span><span class="sig-val blue" id="ethFunding">0.0047% (近零)</span></div>
+      <div class="sig-row"><span class="sig-lbl">合约OI (Gate)</span><span class="sig-val blue" id="ethOI">--</span></div>
+      <div class="sig-row"><span class="sig-lbl">Binance持仓</span><span class="sig-val blue" id="ethBinanceOI">--</span></div>
+      <div class="sig-row"><span class="sig-lbl">多空比 (Binance全球)</span><span class="sig-val green" id="ethLS">--</span></div>
+      <div class="sig-row"><span class="sig-lbl">Gate多/空账户</span><span class="sig-val" id="ethUsers">--</span></div>
+      <div class="sig-row"><span class="sig-lbl">ETF周流向 (周度)</span><span class="sig-val green">+$6,080万 (连续4周)</span></div>
+      <div class="sig-row"><span class="sig-lbl">链上储备 (静态)</span><span class="sig-val green">持续下降 (锁仓)</span></div>
+      <div class="sig-row"><span class="sig-lbl">爆仓(24H, 静态)</span><span class="sig-val red">$2.56亿全网</span></div>
       <div class="tag-row" style="margin-top:6px;">
         <span class="tag tag-bull">🐋 鲸鱼+7,919 ETH</span>
         <span class="tag tag-bull">BlackRock +$5,030万</span>
@@ -912,40 +1015,60 @@ body {
       </table>
     </div>
 
+    <!-- Live trend & key levels -->
+    <div class="mini-card trend-card">
+      <h3>⚡ 实时趋势与点位 <span class="trend-updated" id="sndkTrendUpdated">--</span></h3>
+      <div class="trend-hero">
+        <span class="trend-badge neutral" id="sndkTrendBadge">--</span>
+        <div>
+          <div class="trend-desc" id="sndkTrendDesc">正在读取行情...</div>
+          <div class="trend-sub" id="sndkTrendSub">EMA20 -- · EMA50 -- · RSI -- · ATR --</div>
+        </div>
+      </div>
+      <div class="key-levels">
+        <div class="key-level short"><span>阻力2</span><b id="sndkR2">--</b></div>
+        <div class="key-level short"><span>阻力1</span><b id="sndkR1">--</b></div>
+        <div class="key-level long"><span>支撑1</span><b id="sndkS1">--</b></div>
+        <div class="key-level long"><span>支撑2</span><b id="sndkS2">--</b></div>
+      </div>
+      <div class="trend-note" id="sndkTrendNote">等待 Gate.io 4H 数据更新...</div>
+    </div>
+
     <!-- Entry levels -->
     <div class="mini-card">
       <h3>🟢 做多 / 🔴 做空 SNDK</h3>
-      <div class="level-card long">
-        <div class="lv-title">L1 短线博反弹</div>
-        <div class="lv-price green">$1,160 - 1,200</div>
-        <div class="lv-detail">止损 $1,120 · 目标 $1,350/1,430</div>
+      <div class="level-card long" id="sndkL1Card">
+        <div class="lv-title" id="sndkL1Title">L1 短线博反弹</div>
+        <div class="lv-price green" id="sndkL1Price">$1,160 - 1,200</div>
+        <div class="lv-detail" id="sndkL1Detail">止损 $1,120 · 目标 $1,350/1,430</div>
       </div>
-      <div class="level-card long">
-        <div class="lv-title">L2 中期布局</div>
-        <div class="lv-price green">$990 - 1,050</div>
-        <div class="lv-detail">止损 $950 · 目标 $1,300/1,500</div>
+      <div class="level-card long" id="sndkL2Card">
+        <div class="lv-title" id="sndkL2Title">L2 中期布局</div>
+        <div class="lv-price green" id="sndkL2Price">$990 - 1,050</div>
+        <div class="lv-detail" id="sndkL2Detail">止损 $950 · 目标 $1,300/1,500</div>
       </div>
-      <div class="level-card short">
-        <div class="lv-title">S1 反弹做空</div>
-        <div class="lv-price red">$1,350 - 1,430</div>
-        <div class="lv-detail">止损 $1,460 · 目标 $1,200/1,050</div>
+      <div class="level-card short" id="sndkS1Card">
+        <div class="lv-title" id="sndkS1Title">S1 反弹做空</div>
+        <div class="lv-price red" id="sndkS1Price">$1,350 - 1,430</div>
+        <div class="lv-detail" id="sndkS1Detail">止损 $1,460 · 目标 $1,200/1,050</div>
       </div>
-      <div class="level-card short">
-        <div class="lv-title">S2 趋势做空</div>
-        <div class="lv-price red">$1,600 - 1,660</div>
-        <div class="lv-detail">止损 $1,700 · 目标 $1,350/1,200</div>
+      <div class="level-card short" id="sndkS2Card">
+        <div class="lv-title" id="sndkS2Title">S2 趋势做空</div>
+        <div class="lv-price red" id="sndkS2Price">$1,600 - 1,660</div>
+        <div class="lv-detail" id="sndkS2Detail">止损 $1,700 · 目标 $1,350/1,200</div>
       </div>
     </div>
 
     <!-- Smart Money -->
     <div class="mini-card">
-      <h3>📊 合约资金 · 机构动向</h3>
-      <div class="sig-row"><span class="sig-lbl">Hyperliquid OI</span><span class="sig-val blue">$1.64亿 (+25.4%)</span></div>
-      <div class="sig-row"><span class="sig-lbl">多空比</span><span class="sig-val" style="color:#e65100;">多头44% vs 空头56%</span></div>
-      <div class="sig-row"><span class="sig-lbl">存储三雄OI</span><span class="sig-val green">SNDK唯一扩张 +36%</span></div>
-      <div class="sig-row"><span class="sig-lbl">24H成交额</span><span class="sig-val blue">$8.18亿 (HL第一)</span></div>
-      <div class="sig-row"><span class="sig-lbl">FMR (Fidelity)</span><span class="sig-val red">-824万股 (-38%)⚠️</span></div>
-      <div class="sig-row"><span class="sig-lbl">Vanguard</span><span class="sig-val green">+953万股 新建仓🆕</span></div>
+      <h3>📊 合约资金 · 机构动向 <span class="trend-updated" id="sndkSmartTime">--</span></h3>
+      <div class="sig-row"><span class="sig-lbl">合约OI (Gate)</span><span class="sig-val blue" id="sndkOI">--</span></div>
+      <div class="sig-row"><span class="sig-lbl">资金费率 (Gate)</span><span class="sig-val blue" id="sndkFunding">--</span></div>
+      <div class="sig-row"><span class="sig-lbl">Gate多/空账户</span><span class="sig-val" id="sndkUsers">--</span></div>
+      <div class="sig-row"><span class="sig-lbl">24H成交额</span><span class="sig-val blue" id="sndkVol">--</span></div>
+      <div class="sig-row"><span class="sig-lbl">存储三雄OI (静态)</span><span class="sig-val green">SNDK唯一扩张 +36%</span></div>
+      <div class="sig-row"><span class="sig-lbl">FMR (13F季度)</span><span class="sig-val red">-824万股 (-38%)⚠️</span></div>
+      <div class="sig-row"><span class="sig-lbl">Vanguard (13F季度)</span><span class="sig-val green">+953万股 新建仓🆕</span></div>
       <div class="tag-row" style="margin-top:6px;">
         <span class="tag tag-bear">FMR大幅减持</span>
         <span class="tag tag-bull">Vanguard建仓</span>
@@ -987,7 +1110,7 @@ body {
     <button class="search-clear" onclick="clearSearch()" style="display:none" id="searchClear">✕</button>
   </div>
   <div class="news-header">
-    <span>📡 国际新闻实时推送 · 影响ETH & SNDK</span>
+    <span>📡 国际新闻实时推送 · 影响ETH & SNDK <span class="trend-updated" id="newsUpdateTime">--</span></span>
     <div class="news-filters">
       <button class="news-filter active" onclick="filterNews('all')">全部</button>
       <button class="news-filter" onclick="filterNews('eth')">🟣 ETH相关</button>
@@ -995,6 +1118,7 @@ body {
       <button class="news-filter" onclick="filterNews('macro')">🔴 宏观</button>
       <button class="news-filter" onclick="filterNews('both')">🟣🟠 双重影响</button>
     </div>
+    <button class="refresh-btn" onclick="refreshNews(true)" style="background:#627eea;">刷新新闻</button>
   </div>
   <div class="news-feed" id="newsFeed">
     <!-- News items injected by JS -->
@@ -1002,7 +1126,7 @@ body {
 </div>
 
 <div class="footer-bar">
-  子霖的交易成神之路 · ETH+SNDK Gate.io实时 · 价格2秒刷新
+  子霖的交易成神之路 · ETH+SNDK 实时 · 价格2秒 · 点位30秒 · 聪明钱60秒 · 新闻5分钟
 </div>
 
 <script>
@@ -1094,17 +1218,26 @@ const newsData = [
   }
 ];
 
+let newsPool = newsData.slice();
+let currentNewsFilter = 'all';
+let liveNewsCache = [];
+const NEWS_FEEDS = [
+  { name: 'Cointelegraph', url: 'https://cointelegraph.com/rss' },
+  { name: 'Decrypt', url: 'https://decrypt.co/feed' }
+];
+
 function renderNews(filter = 'all') {
   const feed = document.getElementById('newsFeed');
-  const filtered = filter === 'all' ? newsData : newsData.filter(n => n.cat === filter);
+  currentNewsFilter = filter;
+  const filtered = filter === 'all' ? newsPool : newsPool.filter(n => n.cat === filter);
 
   feed.innerHTML = filtered.map(n => `
     <div class="news-item" data-cat="${n.cat}">
       <span class="news-cat ${n.cat}-cat">${catLabel(n.cat)}</span>
-      <span class="news-time">${n.time}</span>
+      <span class="news-time">${escapeHtml(n.time)}${n.source ? `<span class="news-source">${escapeHtml(n.source)}</span>` : ''}</span>
       <div class="news-text">
-        <div class="headline">${n.headline}</div>
-        <div class="detail">${n.detail}</div>
+        <div class="headline">${n.link ? `<a href="${escapeHtml(n.link)}" target="_blank" rel="noopener">${escapeHtml(n.headline)}</a>` : escapeHtml(n.headline)}</div>
+        <div class="detail">${escapeHtml(n.detail)}</div>
       </div>
       <span class="news-impact impact-${n.impact}">${impactLabel(n.impact)}</span>
     </div>
@@ -1127,15 +1260,120 @@ function filterNews(cat) {
   renderNews(cat);
 }
 
+function stripHtml(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html || '';
+  return div.textContent.replace(/\s+/g, ' ').trim();
+}
+
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatNewsDate(value) {
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return '--';
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getMonth() + 1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function classifyNews(title, detail) {
+  const t = (title + ' ' + detail).toLowerCase();
+  const ethWords = ['ether', 'ethereum', 'eth ', ' eth', 'defi', 'erc', 'etf', 'staking'];
+  const sndkWords = ['sandisk', 'sndk', 'nand', 'hbm', 'memory', 'semiconductor', 'flash', 'micron', 'sk hynix'];
+  const macroWords = ['fed', 'federal reserve', 'cpi', 'inflation', 'treasury', 'interest rate', 'recession', 'jobs report'];
+  let eth = 0, sndk = 0, macro = 0;
+  ethWords.forEach(w => { if (t.includes(w)) eth++; });
+  sndkWords.forEach(w => { if (t.includes(w)) sndk++; });
+  macroWords.forEach(w => { if (t.includes(w)) macro++; });
+  if (eth && sndk) return 'both';
+  if (sndk) return 'sndk';
+  if (macro) return 'macro';
+  if (eth) return 'eth';
+  return 'both';
+}
+
+function parseRSSItems(xml) {
+  const doc = new DOMParser().parseFromString(xml, 'text/xml');
+  return Array.from(doc.querySelectorAll('item')).map(item => {
+    const title = item.querySelector('title')?.textContent?.trim() || '';
+    const descEl = item.getElementsByTagName('description')[0] || item.getElementsByTagNameNS('*', 'encoded')[0];
+    const desc = descEl ? stripHtml(descEl.textContent) : '';
+    const linkEl = item.querySelector('link') || item.getElementsByTagName('link')[0];
+    const link = linkEl ? (linkEl.textContent || linkEl.getAttribute('href') || '').trim() : '';
+    const pub = item.querySelector('pubDate')?.textContent || '';
+    return { title, desc, link, pub };
+  }).filter(n => n.title);
+}
+
+function setNewsTime(text) {
+  const el = document.getElementById('newsUpdateTime');
+  if (el) el.textContent = text;
+}
+
+async function refreshNews(manual) {
+  if (manual) setNewsTime('刷新中...');
+  const results = await Promise.allSettled(NEWS_FEEDS.map(feed =>
+    proxyText(feed.url).then(xml => parseRSSItems(xml).map(item => ({
+      cat: classifyNews(item.title, item.desc),
+      impact: 'mid',
+      time: formatNewsDate(item.pub),
+      headline: item.title,
+      detail: item.desc.slice(0, 180),
+      source: feed.name,
+      link: item.link
+    })))
+  ));
+  liveNewsCache = [];
+  results.forEach(r => { if (r.status === 'fulfilled') liveNewsCache.push(...r.value); });
+  liveNewsCache = liveNewsCache.slice(0, 40);
+  newsPool = [...liveNewsCache, ...newsData];
+  setNewsTime('更新 ' + new Date().toLocaleTimeString('zh-CN'));
+  renderNews(currentNewsFilter);
+  return liveNewsCache.length;
+}
+
 // ===== PRICE ENGINE: Gate.io via CORS proxy =====
 const P = 'https://proxy.cors.sh/';
 const G = 'https://api.gateio.ws/api/v4';
+let ethPriceNow = 0;
+let sndkPriceNow = 0;
+let ethCandleSeries = [];
+let sndkCandleSeries = [];
+
+async function fetchWithTimeout(url, timeout = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function proxyJson(url) {
+  const res = await fetchWithTimeout(P + url);
+  return res.json();
+}
+
+async function proxyText(url) {
+  const res = await fetchWithTimeout(P + url, 18000);
+  return res.text();
+}
 
 async function fetchETHTicker() {
   try {
     const d = await fetch(P+G+'/spot/tickers?currency_pair=ETH_USDT').then(r=>r.json());
     const t = d[0];
     const price = +t.last, change = +t.change_percentage;
+    ethPriceNow = price;
     updatePriceEl('ethPrice', price, 'ethChange', change);
     updatePriceEl('ethFluctPrice', price);
     updateFluctCell('ethFluct24H', change);
@@ -1153,35 +1391,214 @@ async function fetchSNDKTicker() {
     const d = await fetch(P+G+'/futures/usdt/tickers?contract=SNDK_USDT').then(r=>r.json());
     const t = d[0];
     const price = +t.last, change = +t.change_percentage;
+    sndkPriceNow = price;
     updatePriceEl('sndkPrice', price, 'sndkChange', change);
     updatePriceEl('sndkFluctPrice', price);
     updateFluctCell('sndkFluct24H', change);
     document.getElementById('sndkFluctHigh').textContent = '$' + (+t.high_24h).toFixed(2);
     document.getElementById('sndkFluctLow').textContent = '$' + (+t.low_24h).toFixed(2);
     document.getElementById('sndkFluctVol').textContent = formatVolume(+t.volume_24h||0);
+    const ms = document.getElementById('mobileSndkPrice');
+    if (ms) ms.textContent = '$' + price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+    const sv = document.getElementById('sndkVol');
+    if (sv) sv.textContent = formatVolume(+t.volume_24h||0);
   } catch(e) { console.log('SNDK ticker:', e.message); }
 }
 
 async function fetchCandles() {
-  // ETH 1H/4H
+  // ETH 1H/4H + full 4H series for trend levels
   try {
-    const [k1h,k4h] = await Promise.all([
+    const [k1h,k4h,series] = await Promise.all([
       fetch(P+G+'/spot/candlesticks?currency_pair=ETH_USDT&interval=1h&limit=2').then(r=>r.json()),
-      fetch(P+G+'/spot/candlesticks?currency_pair=ETH_USDT&interval=4h&limit=2').then(r=>r.json())
+      fetch(P+G+'/spot/candlesticks?currency_pair=ETH_USDT&interval=4h&limit=2').then(r=>r.json()),
+      fetch(P+G+'/spot/candlesticks?currency_pair=ETH_USDT&interval=4h&limit=120').then(r=>r.json())
     ]);
     if(k1h.length>=2) updateFluctCell('ethFluct1H', getChange(k1h[k1h.length-2][2], k1h[k1h.length-1][2]));
     if(k4h.length>=2) updateFluctCell('ethFluct4H', getChange(k4h[k4h.length-2][2], k4h[k4h.length-1][2]));
+    ethCandleSeries = normalizeCandles(series, 'spot');
+    if(ethCandleSeries.length >= 30) renderLevels('eth', computeLevels(ethCandleSeries, ethPriceNow || parsePrice('ethPrice')));
   } catch(e) {}
 
-  // SNDK 1H/4H
+  // SNDK 1H/4H + full 4H series for trend levels
   try {
-    const [k1h,k4h] = await Promise.all([
+    const [k1h,k4h,series] = await Promise.all([
       fetch(P+G+'/futures/usdt/candlesticks?contract=SNDK_USDT&interval=1h&limit=2').then(r=>r.json()),
-      fetch(P+G+'/futures/usdt/candlesticks?contract=SNDK_USDT&interval=4h&limit=2').then(r=>r.json())
+      fetch(P+G+'/futures/usdt/candlesticks?contract=SNDK_USDT&interval=4h&limit=2').then(r=>r.json()),
+      fetch(P+G+'/futures/usdt/candlesticks?contract=SNDK_USDT&interval=4h&limit=120').then(r=>r.json())
     ]);
     if(k1h.length>=2) updateFluctCell('sndkFluct1H', getChange(k1h[k1h.length-2].c, k1h[k1h.length-1].c));
     if(k4h.length>=2) updateFluctCell('sndkFluct4H', getChange(k4h[k4h.length-2].c, k4h[k4h.length-1].c));
+    sndkCandleSeries = normalizeCandles(series, 'futures');
+    if(sndkCandleSeries.length >= 30) renderLevels('sndk', computeLevels(sndkCandleSeries, sndkPriceNow || parsePrice('sndkPrice')));
   } catch(e) {}
+}
+
+function parsePrice(id) {
+  const el = document.getElementById(id);
+  const txt = el ? el.textContent : '0';
+  return parseFloat(txt.replace(/[^0-9.-]/g, '')) || 0;
+}
+
+function normalizeCandles(raw, mode) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(k => {
+    if (Array.isArray(k)) {
+      // Gate.io spot candles: [time, quote_volume, close, high, low, open, base_volume]
+      return { t: +k[0], o: +k[5], h: +k[3], l: +k[4], c: +k[2], v: +k[1] };
+    }
+    return { t: +k.t, o: +k.o, h: +k.h, l: +k.l, c: +k.c, v: +k.v };
+  }).filter(c => isFinite(c.c) && isFinite(c.h) && isFinite(c.l));
+}
+
+function last(arr) { return arr.length ? arr[arr.length - 1] : 0; }
+
+function emaSeries(values, period) {
+  if (!values.length) return [];
+  const k = 2 / (period + 1);
+  const out = [values[0]];
+  for (let i = 1; i < values.length; i++) {
+    out.push(values[i] * k + out[i - 1] * (1 - k));
+  }
+  return out;
+}
+
+function rsiSeries(values, period = 14) {
+  if (values.length <= period) return [50];
+  let gains = 0, losses = 0;
+  for (let i = 1; i <= period; i++) {
+    const ch = values[i] - values[i - 1];
+    if (ch >= 0) gains += ch; else losses -= ch;
+  }
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+  const out = [avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss)];
+  for (let i = period + 1; i < values.length; i++) {
+    const ch = values[i] - values[i - 1];
+    avgGain = (avgGain * (period - 1) + Math.max(ch, 0)) / period;
+    avgLoss = (avgLoss * (period - 1) + Math.max(-ch, 0)) / period;
+    out.push(avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss));
+  }
+  return out;
+}
+
+function atrSeries(candles, period = 14) {
+  const trs = [];
+  for (let i = 1; i < candles.length; i++) {
+    const pc = candles[i - 1].c;
+    trs.push(Math.max(candles[i].h - candles[i].l, Math.abs(candles[i].h - pc), Math.abs(candles[i].l - pc)));
+  }
+  if (!trs.length) return [candles[0].h - candles[0].l];
+  if (trs.length < period) return [trs.reduce((a, b) => a + b, 0) / trs.length];
+  let atr = trs.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  const out = [atr];
+  for (let i = period; i < trs.length; i++) {
+    atr = (atr * (period - 1) + trs[i]) / period;
+    out.push(atr);
+  }
+  return out;
+}
+
+function computeLevels(candles, price) {
+  if (!price) price = candles[candles.length - 1].c;
+  const closes = candles.map(c => c.c);
+  const ema20v = last(emaSeries(closes, 20)) || price;
+  const ema50v = last(emaSeries(closes, 50)) || price;
+  const rsiV = last(rsiSeries(closes, 14)) || 50;
+  const atrV = Math.max(last(atrSeries(candles, 14)) || price * 0.008, price * 0.002);
+
+  const lastCandle = candles[candles.length - 1];
+  const prev = candles[candles.length - 2] || lastCandle;
+  const p = (prev.h + prev.l + prev.c) / 3;
+  let r1 = 2 * p - prev.l;
+  let s1 = 2 * p - prev.h;
+  let r2 = p + (prev.h - prev.l);
+  let s2 = p - (prev.h - prev.l);
+
+  const minGap = atrV * 0.25;
+  if (r1 <= price) r1 = Math.max(r1, price + minGap);
+  if (s1 >= price) s1 = Math.min(s1, price - minGap);
+  r2 = Math.max(r2, r1 + minGap);
+  s2 = Math.min(s2, s1 - minGap);
+
+  let score = 0;
+  if (price > ema20v) score++; else score--;
+  if (ema20v > ema50v) score++; else score--;
+  if (price > ema50v) score++;
+  if (rsiV > 55) score++; else if (rsiV < 45) score--;
+  const trend = score >= 2 ? '多头' : (score <= -2 ? '空头' : '震荡');
+
+  const l1Top = s1 + atrV * 0.35;
+  const l2Top = s2 + atrV * 0.35;
+  const s1Bot = r1 - atrV * 0.35;
+  const s2Bot = r2 - atrV * 0.35;
+
+  return {
+    trend, ema20v, ema50v, rsiV, atrV,
+    r1, r2, s1, s2, p,
+    l1Top, l2Top, s1Bot, s2Bot
+  };
+}
+
+function fmt(v, dec = 2) {
+  if (!isFinite(v)) return '--';
+  return '$' + v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+
+function pct(a, b) {
+  if (!a || !b) return 0;
+  return ((b - a) / a) * 100;
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function setBadge(id, trend) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const label = trend === '多头' ? '多头' : (trend === '空头' ? '空头' : '震荡');
+  el.textContent = label;
+  el.className = 'trend-badge ' + (trend === '多头' ? 'bullish' : (trend === '空头' ? 'bearish' : 'neutral'));
+}
+
+function renderLevels(symbol, L) {
+  const price = symbol === 'eth' ? (ethPriceNow || parsePrice('ethPrice')) : (sndkPriceNow || parsePrice('sndkPrice'));
+  setBadge(symbol + 'TrendBadge', L.trend);
+  setText(symbol + 'TrendDesc', L.trend + (L.trend === '多头' ? ' · 回踩做多为主' : (L.trend === '空头' ? ' · 反弹做空为主' : ' · 等待突破确认')));
+  setText(symbol + 'TrendSub', `EMA20 ${fmt(L.ema20v)} · EMA50 ${fmt(L.ema50v)} · RSI ${L.rsiV.toFixed(1)} · ATR ${fmt(L.atrV)}`);
+  setText(symbol + 'TrendUpdated', '更新 ' + new Date().toLocaleTimeString('zh-CN'));
+  setText(symbol + 'R1', fmt(L.r1));
+  setText(symbol + 'R2', fmt(L.r2));
+  setText(symbol + 'S1', fmt(L.s1));
+  setText(symbol + 'S2', fmt(L.s2));
+
+  const longHint = L.trend === '空头' ? '仅反弹博短' : (L.trend === '多头' ? '主攻区' : '试探区');
+  const shortHint = L.trend === '多头' ? '仅阻力博短' : (L.trend === '空头' ? '主攻区' : '试探区');
+  setText(symbol + 'L1Title', `L1 激进做多 · ${longHint}`);
+  setText(symbol + 'L1Price', `${fmt(L.s1)} - ${fmt(L.l1Top)}`);
+  setText(symbol + 'L1Detail', `止损 ${fmt(L.s1 - L.atrV * 1.1)} · 目标 ${fmt(L.p)}/${fmt(L.r1)} · 距现价 ${pct(price, L.s1).toFixed(1)}%`);
+  setText(symbol + 'L2Title', 'L2 稳健做多');
+  setText(symbol + 'L2Price', `${fmt(L.s2)} - ${fmt(L.l2Top)}`);
+  setText(symbol + 'L2Detail', `止损 ${fmt(L.s2 - L.atrV * 1.1)} · 目标 ${fmt(L.s1)}/${fmt(L.p)}`);
+  setText(symbol + 'S1Title', `S1 短线做空 · ${shortHint}`);
+  setText(symbol + 'S1Price', `${fmt(L.s1Bot)} - ${fmt(L.r1)}`);
+  setText(symbol + 'S1Detail', `止损 ${fmt(L.r1 + L.atrV * 1.1)} · 目标 ${fmt(L.p)}/${fmt(L.s1)} · 距现价 ${pct(price, L.r1).toFixed(1)}%`);
+  setText(symbol + 'S2Title', 'S2 趋势做空');
+  setText(symbol + 'S2Price', `${fmt(L.s2Bot)} - ${fmt(L.r2)}`);
+  setText(symbol + 'S2Detail', `止损 ${fmt(L.r2 + L.atrV * 1.1)} · 目标 ${fmt(L.r1)}/${fmt(L.p)}`);
+
+  const nearLong = price >= L.s1 && price <= L.l1Top + L.atrV * 0.5;
+  const nearShort = price <= L.r1 && price >= L.s1Bot - L.atrV * 0.5;
+  const l1Card = document.getElementById(symbol + 'L1Card');
+  const s1Card = document.getElementById(symbol + 'S1Card');
+  if (l1Card) l1Card.classList.toggle('active-long', nearLong);
+  if (s1Card) s1Card.classList.toggle('active-short', nearShort);
+
+  setText(symbol + 'TrendNote',
+    `${L.trend === '多头' ? '偏多：回踩支撑优先做多。' : (L.trend === '空头' ? '偏空：反弹阻力优先做空。' : '震荡：区间内高抛低吸，等待突破。')}` +
+    `现价距支撑1 ${pct(price, L.s1).toFixed(1)}%，距阻力1 ${pct(price, L.r1).toFixed(1)}%。`
+  );
 }
 
 function getChange(open, close) {
@@ -1219,19 +1636,87 @@ function formatVolume(v) {
   return '$' + v.toFixed(0);
 }
 
-function tickAll() {
-  fetchETHTicker();
-  fetchSNDKTicker();
+function formatCompactUSD(v) {
+  if (!isFinite(v) || v <= 0) return '--';
+  if (v >= 1e8) return '$' + (v / 1e8).toFixed(2) + '亿';
+  if (v >= 1e4) return '$' + (v / 1e4).toFixed(1) + '万';
+  return '$' + v.toFixed(0);
+}
+
+function formatInt(n) {
+  if (!isFinite(n)) return '--';
+  return Math.round(n).toLocaleString('en-US');
+}
+
+async function fetchSmartMoney() {
+  await Promise.allSettled([
+    (async () => {
+      const ethContract = await proxyJson('https://api.gateio.ws/api/v4/futures/usdt/contracts/ETH_USDT');
+      const ethOI = (+ethContract.position_size || 0) * (+ethContract.quanto_multiplier || 1) * (+ethContract.index_price || 0);
+      setText('ethOI', formatCompactUSD(ethOI));
+      setText('ethFunding', ((+ethContract.funding_rate || 0) * 100).toFixed(4) + '% /8H');
+      setText('ethUsers', formatInt(+ethContract.long_users) + ' 多 / ' + formatInt(+ethContract.short_users) + ' 空');
+    })(),
+    (async () => {
+      const [binanceOI, binanceLS] = await Promise.all([
+        proxyJson('https://fapi.binance.com/fapi/v1/openInterest?symbol=ETHUSDT'),
+        proxyJson('https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=ETHUSDT&period=1h&limit=1')
+      ]);
+      setText('ethBinanceOI', formatInt(+binanceOI.openInterest) + '张');
+      const ls = binanceLS[0] || {};
+      if (ls.longShortRatio) {
+        const ratio = +ls.longShortRatio;
+        const longPct = (+ls.longAccount || 0) * 100;
+        setText('ethLS', ratio.toFixed(2) + ' (' + longPct.toFixed(1) + '%多)');
+      }
+    })(),
+    (async () => {
+      const sndkContract = await proxyJson('https://api.gateio.ws/api/v4/futures/usdt/contracts/SNDK_USDT');
+      const sndkOI = (+sndkContract.position_size || 0) * (+sndkContract.quanto_multiplier || 1) * (+sndkContract.index_price || 0);
+      setText('sndkOI', formatCompactUSD(sndkOI));
+      setText('sndkFunding', ((+sndkContract.funding_rate || 0) * 100).toFixed(4) + '% /8H');
+      setText('sndkUsers', formatInt(+sndkContract.long_users) + ' 多 / ' + formatInt(+sndkContract.short_users) + ' 空');
+    })()
+  ]);
+
+  setText('ethSmartTime', '更新 ' + new Date().toLocaleTimeString('zh-CN'));
+  setText('sndkSmartTime', '更新 ' + new Date().toLocaleTimeString('zh-CN'));
+}
+
+function updateCachedLevels() {
+  if (ethCandleSeries.length >= 30) {
+    renderLevels('eth', computeLevels(ethCandleSeries, ethPriceNow || parsePrice('ethPrice')));
+  }
+  if (sndkCandleSeries.length >= 30) {
+    renderLevels('sndk', computeLevels(sndkCandleSeries, sndkPriceNow || parsePrice('sndkPrice')));
+  }
+}
+
+async function tickAll() {
+  await Promise.all([fetchETHTicker(), fetchSNDKTicker()]);
+  updateCachedLevels();
   document.getElementById('updateTime').textContent = new Date().toLocaleTimeString('zh-CN');
+}
+
+async function refreshAll() {
+  await tickAll();
+  fetchCandles();
+  fetchSmartMoney();
+  refreshNews(false);
+  showToast('行情与点位已刷新');
 }
 
 window.onload = function() {
   renderNews('all');
   tickAll();
   fetchCandles();
-  // Price: every 2 seconds | Candles: every 30 seconds
+  fetchSmartMoney();
+  refreshNews(false);
+  // Price: 2s | Candles: 30s | Smart money: 60s | News: 5min
   setInterval(tickAll, 2000);
   setInterval(fetchCandles, 30000);
+  setInterval(fetchSmartMoney, 60000);
+  setInterval(() => refreshNews(false), 300000);
 };
 
 // Mobile tab switching
@@ -1560,7 +2045,7 @@ function doCalc() {
 
 // Integrate alert check into tick cycle
 const origTick = tickAll;
-tickAll = function() { origTick(); checkAlerts(); };
+tickAll = async function() { await origTick(); checkAlerts(); };
 
 // Overlay close
 document.getElementById('alertOverlay').addEventListener('click', closeCalcPopup);
